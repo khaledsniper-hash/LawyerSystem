@@ -1,0 +1,12 @@
+/* Custom styles for Law Firm Management System - add your overrides here */
+
+/* Ensure badge text has enough contrast in both themes */
+.badge.bg-outline-primary {
+    color: var(--text-primary) !important;
+    border-color: var(--text-primary) !important;
+}
+
+/* Upcoming session label contrast */
+.next-session-text {
+    color: var(--text-primary) !important;
+}

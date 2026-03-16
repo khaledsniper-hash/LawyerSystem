@@ -1,0 +1,298 @@
+{% load static %}
+
+<!-- Case Form Partial Template -->
+<div class="case-form-container" data-is-edit="{% if form.instance.pk %}true{% else %}false{% endif %}">
+    <style>
+        :root {
+            --primary-soft: rgba(79, 70, 229, 0.08);
+            --input-bg: var(--bg-input);
+        }
+        .form-control, .form-select {
+            padding: 0.65rem 1rem;
+            border-radius: 12px;
+            border: 1px solid var(--border-color);
+            background: var(--bg-input);
+            color: var(--text-primary);
+            transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .form-control:focus, .form-select:focus {
+            background: var(--bg-card);
+            border-color: #4f46e5;
+            box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.1);
+        }
+        .form-label {
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+            color: var(--text-primary);
+            font-size: 0.95rem;
+        }
+        .text-hint-info { color: #10b981; font-weight: 500; } /* Green for info */
+        .text-hint-warn { color: #f43f5e; font-weight: 500; } /* Red for warning */
+
+        /* Attachments Style */
+        .attachment-wrapper {
+            border: 1px solid var(--border-color);
+            border-radius: 14px;
+            padding: 0.6rem 1.15rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background: var(--bg-card);
+            margin-bottom: 10px;
+        }
+        [data-theme="dark"] .attachment-wrapper { background: var(--bg-input); }
+
+        .browse-btn {
+            background: var(--sidebar-hover);
+            border: 1px solid var(--border-color);
+            border-radius: 8px;
+            padding: 5px 14px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--text-secondary);
+            cursor: pointer;
+        }
+        .file-status {
+            color: var(--text-muted);
+            font-size: 0.85rem;
+            flex-grow: 1;
+            margin-right: 15px;
+        }
+        .btn-add-attachment {
+            border: 2px dashed var(--border-color);
+            border-radius: 14px;
+            padding: 10px;
+            background: transparent;
+            color: var(--text-secondary);
+            font-weight: 600;
+            width: 100%;
+            transition: all 0.2s;
+        }
+        .btn-add-attachment:hover {
+            border-color: #4f46e5;
+            color: #4f46e5;
+            background: var(--primary-soft);
+        }
+        .trash-btn {
+            background: var(--bg-card);
+            border: 1px solid var(--border-color);
+            border-radius: 10px;
+            padding: 6px 10px;
+            color: #ef4444;
+            transition: all 0.2s;
+        }
+        .trash-btn:hover {
+            background: #fef2f2;
+            border-color: #ef4444;
+        }
+    </style>
+
+    <div class="row g-3">
+        <!-- رقم القضية -->
+        <div class="col-md-5">
+            <label class="form-label">رقم القضية <span class="text-danger">*</span></label>
+            <input type="text" name="case_number" class="form-control" required placeholder="مثال: 123/2025"
+                value="{{ form.case_number.value|default:'' }}">
+        </div>
+
+        <!-- سنة القضية -->
+        <div class="col-md-3">
+            <label class="form-label">سنة القضية <span class="text-danger">*</span></label>
+            <select name="case_year" class="form-select" required>
+                {% for year in years_range %}
+                <option value="{{ year }}" {% if year|stringformat:"i" == current_year|stringformat:"i" %}selected{% endif %}>{{ year }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- صفة الموكل -->
+        <div class="col-md-4">
+            <label class="form-label">صفة الموكل</label>
+            <select name="position" class="form-select">
+                <option value="plaintiff" {% if form.position.value == "plaintiff" %}selected{% endif %}>مدعي</option>
+                <option value="defendant" {% if form.position.value == "defendant" %}selected{% endif %}>مدعى عليه</option>
+            </select>
+        </div>
+
+        <!-- العميل -->
+        <div class="col-md-6">
+            <label class="form-label">اسم العميل <span class="text-danger">*</span></label>
+            <select name="client" class="form-select" required>
+                <option value="">اختر العميل</option>
+                {% for client in clients %}
+                <option value="{{ client.id }}" {% if client.id|stringformat:"i" == form.client.value|stringformat:"i" %}selected{% endif %}>{{ client.full_name }}</option>
+                {% endfor %}
+            </select>
+        </div>
+
+        <!-- الخصوم -->
+        <div class="col-md-6">
+            <label class="form-label">الخصوم</label>
+            <select name="opponents" class="form-select" multiple size="3" style="height: 48px;">
+                {% for opponent in opponents %}
+                <option value="{{ opponent.id }}" {% if opponent.id in form.opponents.value %}selected{% endif %}>{{ opponent.name }}</option>
+                {% endfor %}
+            </select>
+            <small class="text-hint-warn" style="font-size: 0.75rem;">Ctrl + انقر للتحديد المتعدد</small>
+        </div>
+
+        <!-- نوع القضية -->
+        <div class="col-md-6">
+            <label class="form-label">نوع القضية <span class="text-danger">*</span></label>
+            <select name="case_type" class="form-select" required>
+                <option value="">اختر النوع</option>
+                <option value="مدني" {% if form.case_type.value == "مدني" %}selected{% endif %}>مدني</option>
+                <option value="جنائي" {% if form.case_type.value == "جنائي" %}selected{% endif %}>جنائي</option>
+                <option value="تجاري" {% if form.case_type.value == "تجاري" %}selected{% endif %}>تجاري</option>
+                <option value="عمالي" {% if form.case_type.value == "عمالي" %}selected{% endif %}>عمالي</option>
+                <option value="أحوال شخصية" {% if form.case_type.value == "أحوال شخصية" %}selected{% endif %}>أحوال شخصية</option>
+                <option value="تنفيذ" {% if form.case_type.value == "تنفيذ" %}selected{% endif %}>تنفيذ</option>
+                <option value="أسرة" {% if form.case_type.value == "أسرة" %}selected{% endif %}>أسرة</option>
+            </select>
+        </div>
+
+        <!-- المحكمة -->
+        <div class="col-md-6">
+            <label class="form-label">المحكمة <span class="text-danger">*</span></label>
+            <select name="court" class="form-select" required>
+                <option value="">اختر المحكمة</option>
+                <option value="محكمة أسوان الابتدائية" {% if form.court.value == "محكمة أسوان الابتدائية" %}selected{% endif %}>محكمة أسوان الابتدائية</option>
+                <option value="مأمورية استئناف قنا بأسوان" {% if form.court.value == "مأمورية استئناف قنا بأسوان" %}selected{% endif %}>مأمورية استئناف قنا بأسوان</option>
+                <option value="محكمة الأسرة" {% if form.court.value == "محكمة الأسرة" %}selected{% endif %}>محكمة الأسرة</option>
+                <option value="محكمة أسوان الجزئية" {% if form.court.value == "محكمة أسوان الجزئية" %}selected{% endif %}>محكمة أسوان الجزئية</option>
+            </select>
+        </div>
+
+        <!-- تاريخ الجلسة -->
+        <div class="col-md-4">
+            <label class="form-label"><i class="fas fa-calendar-alt me-1"></i> تاريخ الجلسة</label>
+            <input type="date" name="next_session_date" id="nextSessionDateInput" class="form-control"
+                value="{{ form.next_session_date.value|date:'Y-m-d'|default:'' }}">
+            <small class="text-hint-info mt-1 d-block"><i class="fas fa-info-circle"></i> ترتبط بإدارة الجلسات</small>
+        </div>
+
+        <!-- الحالة -->
+        <div class="col-md-4">
+            <label class="form-label">الحالة</label>
+            <select name="status" class="form-select">
+                <option value="active" {% if form.status.value == "active" %}selected{% endif %}>نشطة</option>
+                <option value="pending" {% if form.status.value == "pending" %}selected{% endif %}>معلقة</option>
+                <option value="won" {% if form.status.value == "won" %}selected{% endif %}>مكسوبة</option>
+                <option value="closed" {% if form.status.value == "closed" %}selected{% endif %}>مغلقة</option>
+            </select>
+        </div>
+
+        <!-- الأولوية -->
+        <div class="col-md-4">
+            <label class="form-label">الأولوية</label>
+            <select name="priority" class="form-select">
+                <option value="normal" {% if form.priority.value == "normal" %}selected{% endif %}>عادية</option>
+                <option value="high" {% if form.priority.value == "high" %}selected{% endif %}>عاجلة</option>
+                <option value="low" {% if form.priority.value == "low" %}selected{% endif %}>منخفضة</option>
+            </select>
+        </div>
+
+
+
+        <!-- موضوع القضية -->
+        <div class="col-12">
+            <label class="form-label">موضوع الدعوى <span class="text-danger">*</span></label>
+            <textarea name="subject" class="form-control" rows="3" required
+                placeholder="أكتب موضوع الدعوى هنا...">{{ form.subject.value|default:'' }}</textarea>
+        </div>
+
+        <!-- المرفقات -->
+        <div class="col-12 mt-4">
+            <div class="d-flex align-items-center gap-2 mb-3">
+                <i class="fas fa-paperclip text-primary"></i>
+                <h6 class="mb-0 fw-bold">المرفقات</h6>
+            </div>
+            
+            <div id="attachments-container">
+                <div class="attachment-row mb-2">
+                    <div class="attachment-wrapper">
+                        <button type="button" class="browse-btn" onclick="this.nextElementSibling.nextElementSibling.click()">تصفّح...</button>
+                        <span class="file-status text-truncate">لم تُحدد أي ملّفات.</span>
+                        <input type="file" name="attachments" class="d-none" onchange="updateFileStatus(this)">
+                    </div>
+                </div>
+            </div>
+
+            <div class="d-flex justify-content-between align-items-center mt-2">
+                <small class="text-muted">الملفات المدعومة: PDF, Word, صور (حد أقصى 5 ملفات)</small>
+                <button type="button" class="btn btn-sm btn-add-attachment w-auto px-3" id="add-attachment">
+                    <i class="fas fa-plus me-1"></i> إضافة مرفق آخر
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // These functions need to be global for inline event handlers
+    if (typeof window.updateFileStatus === 'undefined') {
+        window.updateFileStatus = function(input) {
+            const wrapper = input.closest('.attachment-wrapper');
+            const statusSpan = wrapper.querySelector('.file-status');
+            if (input.files.length > 0) {
+                statusSpan.textContent = input.files[0].name;
+                statusSpan.classList.add('text-primary', 'fw-bold');
+            } else {
+                statusSpan.textContent = 'لم تُحدد أي ملّفات.';
+                statusSpan.classList.remove('text-primary', 'fw-bold');
+            }
+        };
+    }
+
+    // Initialize logic
+    window.initForm = () => {
+        // Attachments logic
+        const container = document.getElementById('attachments-container');
+        const addButton = document.getElementById('add-attachment');
+        if (container && addButton) {
+            let attachmentCount = container.querySelectorAll('.attachment-row').length;
+            addButton.onclick = function() {
+                if (attachmentCount < 5) {
+                    attachmentCount++;
+                    const newRow = document.createElement('div');
+                    newRow.className = 'attachment-row mb-2';
+                    newRow.innerHTML = `
+                        <div class="d-flex align-items-center gap-2">
+                            <div class="attachment-wrapper flex-grow-1 mb-0">
+                                <button type="button" class="browse-btn" onclick="this.nextElementSibling.nextElementSibling.click()">تصفّح...</button>
+                                <span class="file-status text-truncate">لم تُحدد أي ملّفات.</span>
+                                <input type="file" name="attachments" class="d-none" onchange="updateFileStatus(this)">
+                            </div>
+                            <button type="button" class="trash-btn remove-attachment" title="حذف">
+                                <i class="fas fa-trash-alt"></i>
+                            </button>
+                        </div>
+                    `;
+                    container.appendChild(newRow);
+                    newRow.querySelector('.remove-attachment').onclick = function() {
+                        newRow.remove();
+                        attachmentCount--;
+                    };
+                } else {
+                    alert('الحد الأقصى هو 5 ملفات');
+                }
+            };
+        }
+
+        // Date Validation - Prevent Past Dates (Only for NEW cases)
+        const dateInput = document.getElementById('nextSessionDateInput');
+        const formContainer = document.querySelector('.case-form-container');
+        const isEdit = formContainer ? formContainer.getAttribute('data-is-edit') === 'true' : false;
+        
+        if (dateInput && !isEdit) {
+            const today = new Date().toISOString().split('T')[0];
+            dateInput.setAttribute('min', today);
+        }
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.initForm);
+    } else {
+        window.initForm();
+    }
+</script>

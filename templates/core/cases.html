@@ -1,0 +1,609 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency %}
+
+{% block title %}إدارة القضايا{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="row mb-4">
+        <div class="col-12">
+            <h2 class="mb-3">
+                <i class="fas fa-briefcase"></i> إدارة القضايا
+            </h2>
+            <p class="text-muted">عرض وإدارة جميع القضايا</p>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card dash-card bg-primary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ total_cases }}</h3>
+                    <p>إجمالي القضايا</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dash-card bg-success text-white">
+                <div class="card-body text-center">
+                    <h3>{{ active_cases }}</h3>
+                    <p>قضايا نشطة</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dash-card bg-warning text-white">
+                <div class="card-body text-center">
+                    <h3>{{ pending_cases }}</h3>
+                    <p>قضايا معلقة</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card dash-card bg-secondary text-white">
+                <div class="card-body text-center">
+                    <h3>{{ closed_cases }}</h3>
+                    <p>قضايا مغلقة</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters and Actions -->
+    <div class="card mb-4 shadow-sm border-0">
+        <div class="card-body p-4">
+            <form method="get" class="row g-3 align-items-end" id="filterForm">
+                <div class="col-md-2">
+                    <label class="form-label fw-bold mb-2">الحالة</label>
+                    <select name="status" class="form-select" style="height: 48px; border-radius: 10px;">
+                        <option value="">كل الحالات</option>
+                        <option value="active" {% if request.GET.status == 'active' %}selected{% endif %}>نشطة</option>
+                        <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>معلقة</option>
+                        <option value="won" {% if request.GET.status == 'won' %}selected{% endif %}>مكسوبة</option>
+                        <option value="closed" {% if request.GET.status == 'closed' %}selected{% endif %}>مغلقة</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold mb-2">نوع القضية</label>
+                    <select name="case_type" class="form-select" style="height: 48px; border-radius: 10px;">
+                        <option value="">كل الأنواع</option>
+                        <option value="مدني" {% if request.GET.case_type == 'مدني' %}selected{% endif %}>مدني</option>
+                        <option value="جنائي" {% if request.GET.case_type == 'جنائي' %}selected{% endif %}>جنائي</option>
+                        <option value="تجاري" {% if request.GET.case_type == 'تجاري' %}selected{% endif %}>تجاري</option>
+                        <option value="عمالي" {% if request.GET.case_type == 'عمالي' %}selected{% endif %}>عمالي</option>
+                        <option value="أحوال شخصية" {% if request.GET.case_type == 'أحوال شخصية' %}selected{% endif %}>أحوال شخصية</option>
+                        <option value="تنفيذ" {% if request.GET.case_type == 'تنفيذ' %}selected{% endif %}>تنفيذ</option>
+                        <option value="أسرة" {% if request.GET.case_type == 'أسرة' %}selected{% endif %}>أسرة</option>
+                    </select>
+
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold mb-2">المحكمة</label>
+                    <select name="court" class="form-select" style="height: 48px; border-radius: 10px;">
+                        <option value="">كل المحاكم</option>
+                        <option value="محكمة أسوان الابتدائية" {% if request.GET.court == 'محكمة أسوان الابتدائية' %}selected{% endif %}>محكمة أسوان الابتدائية</option>
+                        <option value="مأمورية استئناف قنا بأسوان" {% if request.GET.court == 'مأمورية استئناف قنا بأسوان' %}selected{% endif %}>مأمورية استئناف قنا بأسوان</option>
+                        <option value="محكمة الأسرة" {% if request.GET.court == 'محكمة الأسرة' %}selected{% endif %}>محكمة الأسرة</option>
+                        <option value="محكمة أسوان الجزئية" {% if request.GET.court == 'محكمة أسوان الجزئية' %}selected{% endif %}>محكمة أسوان الجزئية</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label fw-bold mb-2">بحث</label>
+                    <input type="text" name="search" class="form-control" style="height: 48px; border-radius: 10px;"
+                        placeholder="رقم القضية" value="{{ request.GET.search }}">
+                </div>
+                <div class="col-md-4 d-flex gap-2">
+                    <button type="button" id="resetFilters" class="btn d-flex align-items-center justify-content-center gap-2"
+                        style="height: 48px; background-color: #64748b; color: white; border: none; border-radius: 10px; flex: 1; font-weight: 600; white-space: nowrap;">
+                        <i class="fas fa-redo"></i> إعـادة تعيين
+                    </button>
+                    <button type="button" class="btn d-flex align-items-center justify-content-center gap-2"
+                        style="height: 48px; background-color: #10b981; color: white; border: none; border-radius: 10px; flex: 1; font-weight: 600; white-space: nowrap;" 
+                        data-bs-toggle="modal" data-bs-target="#addCaseModal">
+                        <i class="fas fa-plus"></i> إضـافة قضيـة
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Cases Table -->
+    <div class="card shadow-sm border-0">
+            <div class="card-header bg-white border-bottom py-3">
+                <h5 class="mb-0 fw-bold"><i class="fas fa-list-ul text-primary me-2"></i> قائمة القضايا (<span id="casesCount">{{ cases.count }}</span>)</h5>
+            </div>
+        <div class="card-body" id="tableContainer">
+            <div class="table-responsive" style="max-height: 70vh; overflow-y: auto;">
+                <table class="table table-hover table-striped align-middle mb-0">
+                    <thead class="table-light">
+                        <tr>
+                            <th>رقم القضية</th>
+                            <th>العميل</th>
+                            <th>الموضوع</th>
+                            <th>النوع</th>
+                            <th>المحكمة</th>
+                            <th>الحالة</th>
+                            <th class="text-center">إجراءات</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for case in cases %}
+                        <tr>
+                            <!-- رقم القضية -->
+                            <td>
+                                <span class="fw-bold" style="color: var(--text-primary); font-size: 0.95rem;">
+                                    {{ case.case_number|default:"—" }}
+                                </span>
+                            </td>
+                            
+                            <!-- العميل -->
+                            <td>
+                                <i class="fas fa-user-circle text-muted me-1"></i>
+                                <span style="color: var(--text-primary);">{{ case.client.full_name }}</span>
+                            </td>
+
+                            <!-- الموضوع -->
+                            <td>
+                                <div class="fw-bold" style="color: var(--text-primary);" title="{{ case.subject }}">
+                                    {{ case.subject|default:"—"|truncatewords:6 }}
+                                </div>
+                            </td>
+
+                            <!-- النوع -->
+                            <td>
+                                {% with ct=case.case_type %}
+                                {% if ct == 'مدني' or ct == 'civil' %}
+                                <span class="badge rounded-pill bg-outline-primary border-primary text-primary border">مدني</span>
+                                {% elif ct == 'جنائي' or ct == 'criminal' %}
+                                <span class="badge rounded-pill bg-outline-primary border-primary text-primary border">جنائي</span>
+                                {% elif ct == 'تجاري' or ct == 'commercial' %}
+                                <span class="badge rounded-pill bg-outline-primary border-primary text-primary border">تجاري</span>
+                                {% elif ct == 'عمالي' or ct == 'labor' %}
+                                <span class="badge rounded-pill bg-outline-primary border-primary text-primary border">عمالي</span>
+                                {% elif ct == 'أحوال شخصية' or ct == 'personal' %}
+                                <span class="badge rounded-pill bg-outline-primary border-primary text-primary border">أحوال شخصية</span>
+                                {% elif ct %}
+                                <span class="badge rounded-pill bg-outline-primary border-primary text-primary border">{{ ct }}</span>
+                                {% else %}
+                                <span class="text-muted">—</span>
+                                {% endif %}
+                                {% endwith %}
+                            </td>
+
+                            <!-- المحكمة -->
+                            <td>
+                                <span class="small text-muted" title="{{ case.court }}">{{ case.court|default:"—"|truncatechars:30 }}</span>
+                            </td>
+
+                            <!-- الحالة -->
+                            <td>
+                                {% if case.status == 'active' %}
+                                <span class="fw-bold text-success">● نشطة</span>
+                                {% elif case.status == 'pending' %}
+                                <span class="fw-bold text-warning">● معلقة</span>
+                                {% elif case.status == 'closed' %}
+                                <span class="fw-bold text-secondary">● مغلقة</span>
+                                {% elif case.status == 'won' %}
+                                <span class="fw-bold text-info">● مكسوبة</span>
+                                {% elif case.status == 'lost' %}
+                                <span class="fw-bold text-danger">● خاسرة</span>
+                                {% else %}
+                                <span class="fw-bold text-primary">● {{ case.get_status_display }}</span>
+                                {% endif %}
+                            </td>
+
+                            <!-- إجراءات -->
+                            <td class="text-center">
+                                <div class="btn-group">
+                                    <a href="{% url 'core:case_detail' case.pk %}"
+                                        class="btn btn-sm btn-outline-primary" title="عرض"><i
+                                            class="fas fa-eye"></i></a>
+                                    <button type="button" 
+                                        class="btn btn-sm btn-outline-warning btn-edit-case" 
+                                        data-url="{% url 'core:case_update' case.pk %}" 
+                                        title="تعديل">
+                                        <i class="fas fa-edit"></i>
+                                    </button>
+                                    <button type="button" class="btn btn-sm btn-outline-danger btn-delete-case"
+                                        data-url="{% url 'core:case_delete' case.pk %}"
+                                        data-case="{{ case.case_number|default:case.pk }}"
+                                        data-subject="{{ case.subject }}" title="حذف">
+                                        <i class="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-5">
+                                <div class="opacity-50 mb-3"><i class="fas fa-search fa-3x"></i></div>
+                                <p>لا توجد نتائج تطابق بحثك</p>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <!-- Pagination -->
+            {% if is_paginated %}
+            <nav aria-label="Page navigation" class="mt-4" id="paginationContainer">
+                <ul class="pagination justify-content-center mb-0">
+                    {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.previous_page_number }}">السابق</a>
+                    </li>
+                    {% endif %}
+
+                    {% for num in page_obj.paginator.page_range %}
+                    <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                        <a class="page-link"
+                            href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ num }}">صفحة {{ num }}</a>
+                    </li>
+                    {% endfor %}
+
+                    {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link"
+                            href="?{% if request.GET %}{{ request.GET.urlencode }}&{% endif %}page={{ page_obj.next_page_number }}">التالي</a>
+                    </li>
+                    {% endif %}
+                </ul>
+            </nav>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<!-- Delete Case Confirmation Modal -->
+<div class="modal fade" id="deleteCaseModal" tabindex="-1" aria-labelledby="deleteCaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="deleteCaseModalLabel"><i class="fas fa-exclamation-triangle text-danger me-2"></i>تأكيد الحذف</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إلغاء"></button>
+            </div>
+            <div class="modal-body">
+                <p class="mb-1">سيتم حذف القضية التالية نهائياً:</p>
+                <p class="fw-bold text-danger mb-2" id="deleteCaseInfo"></p>
+                <p class="text-muted small mb-0">لا يمكن التراجع عن عملية الحذف.</p>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal"><i class="fas fa-arrow-right"></i> إلغاء</button>
+                <form id="deleteCaseForm" method="post" class="m-0">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-danger"><i class="fas fa-trash-alt"></i> تأكيد الحذف</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Case Modal -->
+<div class="modal fade" id="addCaseModal" tabindex="-1" aria-labelledby="addCaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form method="post" enctype="multipart/form-data" id="addCaseForm" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCaseModalLabel">
+                    <i class="fas fa-gavel me-2"></i>إضافة قضية جديدة
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body" id="modalCaseContent">
+                {% include 'core/case_form.html' %}
+            </div>
+            <div class="modal-footer border-top-0 pt-0 justify-content-start">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save ms-1"></i> حفظ القضية
+                </button>
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                    <i class="fas fa-times ms-1"></i> إلغاء
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Edit Case Modal -->
+<div class="modal fade" id="editCaseModal" tabindex="-1" aria-labelledby="editCaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <form method="post" enctype="multipart/form-data" id="editCaseForm" class="modal-content">
+            {% csrf_token %}
+            <div class="modal-header">
+                <h5 class="modal-title" id="editCaseModalLabel">
+                    <i class="fas fa-edit me-2"></i>تعديل بيانات القضية
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body" id="editModalContent">
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status">
+                        <span class="visually-hidden">جاري التحميل...</span>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer border-top-0 pt-0 justify-content-start">
+                <button type="submit" class="btn btn-primary px-4">
+                    <i class="fas fa-save ms-1"></i> حفظ التعديلات
+                </button>
+                <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">
+                    <i class="fas fa-times ms-1"></i> إلغاء
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- AJAX Scripts -->
+<script>
+// AJAX Form Submission for Add Case Modal
+document.addEventListener('submit', function(e) {
+    if (e.target && e.target.id === 'addCaseForm') {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        const submitBtn = document.querySelector('button[form="addCaseForm"]');
+        const modalElement = document.getElementById('addCaseModal');
+        const originalText = submitBtn ? submitBtn.innerHTML : 'حفظ';
+        
+        if (submitBtn) {
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
+        }
+        
+        fetch('{% url "core:case_create" %}', {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                if (modalElement) {
+                    const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                    if (modalInstance) modalInstance.hide();
+                }
+                window.location.reload();
+            } else if (data.status === 'error') {
+                let msg = '⚠️ يرجى تصحيح الأخطاء:\n';
+                for (let field in data.errors) {
+                    data.errors[field].forEach(err => {
+                        msg += `• ${field}: ${err}\n`;
+                    });
+                }
+                alert(msg);
+            } else {
+                alert('❌ حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+            }
+        })
+        .catch(err => {
+            console.error('Error:', err);
+            alert('❌ حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+        })
+        .finally(() => {
+            if (submitBtn) {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        });
+    }
+});
+
+// AJAX Filtering Logic
+(function() {
+    const filterForm = document.getElementById('filterForm');
+    const tableContainer = document.getElementById('tableContainer');
+    if (!filterForm || !tableContainer) return;
+
+    let debounceTimer;
+
+    const updateTable = () => {
+        const formData = new FormData(filterForm);
+        const params = new URLSearchParams(formData);
+        const url = window.location.pathname + '?' + params.toString();
+
+        // Update URL
+        window.history.pushState({}, '', url);
+
+        // Show loading state
+        tableContainer.style.opacity = '0.5';
+        tableContainer.style.pointerEvents = 'none';
+
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(response => response.text())
+        .then(html => {
+            const parser = new DOMParser();
+            const doc = parser.parseFromString(html, 'text/html');
+            const newTableContentElement = doc.getElementById('tableContainer');
+            const newCasesCountElement = doc.getElementById('casesCount');
+
+            if (newTableContentElement) {
+                tableContainer.innerHTML = newTableContentElement.innerHTML;
+            }
+            if (newCasesCountElement) {
+                const currentCasesCount = document.getElementById('casesCount');
+                if (currentCasesCount) currentCasesCount.innerHTML = newCasesCountElement.innerHTML;
+            }
+            
+            // Re-apply opacity
+            tableContainer.style.opacity = '1';
+            tableContainer.style.pointerEvents = 'auto';
+        })
+        .catch(error => {
+            console.error('Filtering error:', error);
+            tableContainer.style.opacity = '1';
+            tableContainer.style.pointerEvents = 'auto';
+        });
+    };
+
+    // Listen for changes in selects
+    filterForm.querySelectorAll('select').forEach(select => {
+        select.addEventListener('change', updateTable);
+    });
+
+    // Listen for input in search with debounce
+    const searchInput = filterForm.querySelector('input[name="search"]');
+    if (searchInput) {
+        searchInput.addEventListener('input', () => {
+            clearTimeout(debounceTimer);
+            debounceTimer = setTimeout(updateTable, 500);
+        });
+    }
+
+    // Reset Filters AJAX Logic
+    const resetBtn = document.getElementById('resetFilters');
+    if (resetBtn) {
+        resetBtn.addEventListener('click', () => {
+            filterForm.reset();
+            // Need to manually clear values because form.reset() doesn't always clear everything for AJAX
+            filterForm.querySelectorAll('select').forEach(s => s.value = "");
+            filterForm.querySelectorAll('input').forEach(i => i.value = "");
+            updateTable();
+        });
+    }
+
+    // Handle pagination clicks via AJAX
+    document.addEventListener('click', function(e) {
+        const pageLink = e.target.closest('#paginationContainer .page-link');
+        if (pageLink) {
+            e.preventDefault();
+            const url = pageLink.getAttribute('href');
+            if (!url || url === '#') return;
+            
+            tableContainer.style.opacity = '0.5';
+            fetch(url, {
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+            .then(response => response.text())
+            .then(html => {
+                const parser = new DOMParser();
+                const doc = parser.parseFromString(html, 'text/html');
+                const newTableContentElement = doc.getElementById('tableContainer');
+                const newCasesCountElement = doc.getElementById('casesCount');
+
+                if (newTableContentElement) {
+                    tableContainer.innerHTML = newTableContentElement.innerHTML;
+                }
+                if (newCasesCountElement) {
+                    const currentCasesCount = document.getElementById('casesCount');
+                    if (currentCasesCount) currentCasesCount.innerHTML = newCasesCountElement.innerHTML;
+                }
+                tableContainer.style.opacity = '1';
+                window.history.pushState({}, '', url);
+                window.scrollTo({ top: tableContainer.offsetTop - 100, behavior: 'smooth' });
+            });
+        }
+    });
+})();
+
+// Logic for Edit Case Modal
+document.addEventListener('click', function(e) {
+    const editBtn = e.target.closest('.btn-edit-case');
+    if (editBtn) {
+        const url = editBtn.getAttribute('data-url');
+        const modalElement = document.getElementById('editCaseModal');
+        const contentArea = document.getElementById('editModalContent');
+        
+        // Ensure we handle instances correctly to avoid multiple backdrops
+        const modalInstance = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modalInstance.show();
+        
+        // Set action for the form
+        const form = document.getElementById('editCaseForm');
+        form.setAttribute('action', url);
+        
+        // Fetch form content
+        fetch(url, {
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            contentArea.innerHTML = data.html;
+            // Initialize form logic if necessary
+            if (typeof window.initForm === 'function') window.initForm();
+        })
+        .catch(err => {
+            console.error('Fetch error:', err);
+            contentArea.innerHTML = '<div class="alert alert-danger">❌ فشل تحميل البيانات. تأكد من الاتصال بالسيرفر.</div>';
+        });
+    }
+});
+
+// AJAX Form Submission for Edit Case Modal
+document.addEventListener('submit', function(e) {
+    if (e.target && e.target.id === 'editCaseForm') {
+        e.preventDefault();
+        
+        const form = e.target;
+        const formData = new FormData(form);
+        const submitBtn = form.querySelector('button[type="submit"]');
+        const modalElement = document.getElementById('editCaseModal');
+        const originalText = submitBtn.innerHTML;
+        
+        submitBtn.disabled = true;
+        submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin me-1"></i> جاري الحفظ...';
+        
+        fetch(form.getAttribute('action'), {
+            method: 'POST',
+            body: formData,
+            headers: { 'X-Requested-With': 'XMLHttpRequest' }
+        })
+        .then(res => res.json())
+        .then(data => {
+            if (data.status === 'success') {
+                const modalInstance = bootstrap.Modal.getInstance(modalElement);
+                if (modalInstance) modalInstance.hide();
+                window.location.reload();
+            } else if (data.status === 'error') {
+                let msg = '⚠️ يرجى تصحيح الأخطاء:\n';
+                for (let field in data.errors) {
+                    data.errors[field].forEach(err => {
+                        msg += `• ${field}: ${err}\n`;
+                    });
+                }
+                alert(msg);
+            }
+        })
+        .catch(err => {
+            alert('❌ حدث خطأ غير متوقع.');
+        })
+        .finally(() => {
+            submitBtn.disabled = false;
+            submitBtn.innerHTML = originalText;
+        });
+    }
+});
+
+// Clear form on modal hide
+document.addEventListener('DOMContentLoaded', () => {
+    const modals = ['addCaseModal', 'editCaseModal'];
+    modals.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) {
+            el.addEventListener('hidden.bs.modal', function () {
+                const form = el.querySelector('form');
+                if (form) {
+                    form.reset();
+                    const statuses = form.querySelectorAll('.file-status');
+                    statuses.forEach(s => {
+                        s.textContent = 'لم تُحدد أي ملّفات.';
+                        s.classList.remove('text-primary', 'fw-bold');
+                    });
+                }
+                if (id === 'editCaseModal') {
+                    document.getElementById('editModalContent').innerHTML = '<div class="text-center py-5"><div class="spinner-border text-primary" role="status"><span class="visually-hidden">جاري التحميل...</span></div></div>';
+                }
+            });
+        }
+    });
+});
+</script>
+{% endblock %}

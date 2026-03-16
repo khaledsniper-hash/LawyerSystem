@@ -1,0 +1,403 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}إدارة العملاء - ميزان العدالة{% endblock %}
+
+{% block page_heading %}العملاء{% endblock %}
+
+{% block extra_css %}
+<style>
+    /* تحسين شكل زر التصفح في الثيم الداكن */
+    [data-theme="dark"] .form-control::file-selector-button {
+        background-color: #374151;
+        color: #f3f4f6;
+        border-color: #4b5563;
+    }
+    [data-theme="dark"] .attachment-item {
+        background-color: #1f2937 !important;
+        border: 1px dashed #4b5563;
+    }
+    .attachment-item {
+        transition: all 0.3s ease;
+    }
+    .modal-footer {
+        justify-content: flex-start !important; /* لليمين في RTL */
+    }
+    .clients-hero {
+        background: linear-gradient(135deg, #198754 0%, #157347 100%);
+        border-radius: 15px;
+        padding: 2rem;
+        color: white;
+    }
+    .hero-stat .value {
+        font-size: 2rem;
+        font-weight: 700;
+        display: block;
+    }
+    .hero-stat .label {
+        font-size: 0.85rem;
+        opacity: 0.8;
+        text-transform: uppercase;
+    }
+    .hero-divider {
+        width: 1px;
+        background: rgba(255,255,255,0.2);
+        margin: 0 1rem;
+    }
+    .filter-card {
+        margin-top: -2rem;
+        margin-left: 2rem;
+        margin-right: 2rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="container-fluid py-4">
+    <!-- Header -->
+    <div class="clients-hero mb-4 mx-3">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <div>
+                <h2 class="fw-bold mb-1 text-white">إدارة العملاء</h2>
+                <p class="text-white-50 mb-0">قائمة بكافة العملاء المسجلين في النظام</p>
+            </div>
+        </div>
+        
+        <div class="hero-stats d-flex gap-4">
+            <div class="hero-stat text-center">
+                <span class="value">{{ clients_count }}</span>
+                <span class="label">إجمالي العملاء</span>
+            </div>
+            <div class="hero-divider"></div>
+            <div class="hero-stat text-center">
+                <span class="value">{{ individual_clients }}</span>
+                <span class="label">أفراد</span>
+            </div>
+            <div class="hero-stat text-center">
+                <span class="value">{{ company_clients }}</span>
+                <span class="label">شركات</span>
+            </div>
+            <div class="hero-stat text-center">
+                <span class="value">{{ active_clients }}</span>
+                <span class="label">نشطون</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-card card shadow-sm border-0 mb-4 mx-5">
+        <div class="card-body p-3">
+            <div id="filterContainer" class="row g-3 align-items-end">
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-2">نوع العميل</label>
+                    <select name="type" class="form-select form-select-sm filter-input border-light">
+                        <option value="">كل الأنواع</option>
+                        <option value="individual">فرد</option>
+                        <option value="company">شركة</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <label class="form-label small fw-bold text-muted mb-2">الحالة</label>
+                    <select name="status" class="form-select form-select-sm filter-input border-light">
+                        <option value="">كل الحالات</option>
+                        <option value="active">نشط</option>
+                        <option value="inactive">غير نشط</option>
+                    </select>
+                </div>
+                <div class="col-md-4">
+                    <label class="form-label small fw-bold text-muted mb-2">بحث عن</label>
+                    <input type="text" name="search" class="form-control form-control-sm filter-input border-light" placeholder="الاسم، الهاتف، أو الرقم القومي..." autocomplete="off">
+                </div>
+                <div class="col-md-4">
+                    <div class="d-flex gap-2">
+                        <button type="button" id="resetBtn" class="btn btn-sm btn-outline-secondary flex-grow-1">
+                            <i class="fas fa-redo me-1"></i> إعادة تعيين
+                        </button>
+                        <button type="button" class="btn btn-sm btn-success flex-grow-1 shadow-sm" data-bs-toggle="modal" data-bs-target="#addClientModal">
+                            <i class="fas fa-plus me-1"></i> إضافة عميل
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clients Table Container -->
+    <div class="card border-0 shadow-sm overflow-hidden mx-3">
+        <div class="position-relative">
+            <div class="loading-overlay" id="loadingOverlay" style="display:none; position: absolute; top:0; left:0; right:0; bottom:0; background: rgba(255,255,255,0.7); z-index: 10; display: flex; align-items: center; justify-content: center;">
+                <div class="spinner-border text-success" role="status"></div>
+            </div>
+            <div id="tableContent">
+                {% include 'core/includes/client_table_partial.html' %}
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Client Modal -->
+<div class="modal fade" id="addClientModal" tabindex="-1" aria-labelledby="addClientModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content border-0 shadow-lg">
+            <div class="modal-header bg-success text-white py-3">
+                <h5 class="modal-title fw-bold" id="addClientModalLabel">
+                    <i class="fas fa-user-plus me-2"></i> إضافة عميل جديد
+                </h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form id="addClientForm" enctype="multipart/form-data">
+                {% csrf_token %}
+                <div class="modal-body p-4">
+                    <!-- Row 1: Name and National ID -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">اسم العميل <span class="text-danger">*</span></label>
+                            <input type="text" name="full_name" class="form-control" required placeholder="الاسم الكامل">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">الرقم القومي <span class="text-danger">*</span></label>
+                            <input type="text" name="national_id" class="form-control" required placeholder="14 رقم">
+                        </div>
+                    </div>
+
+                    <!-- Row 2: Phone and Additional Phone -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">رقم الهاتف <span class="text-danger">*</span></label>
+                            <input type="text" name="phone" class="form-control" required placeholder="010...">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">رقم إضافي</label>
+                            <input type="text" name="additional_phone" class="form-control" placeholder="رقم هاتف آخر">
+                        </div>
+                    </div>
+
+                    <!-- Row 3: Job and Client Type -->
+                    <div class="row g-4 mb-4">
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">الوظيفة</label>
+                            <input type="text" name="job" class="form-control" placeholder="المسمي الوظيفي">
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-bold small">نوع العميل</label>
+                            <select name="type" class="form-select">
+                                <option value="individual">فرد</option>
+                                <option value="company">شركة</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <!-- Row 4: Detailed Address -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small">العنوان التفصيلي</label>
+                        <textarea name="address" class="form-control" rows="2" placeholder="أدخل العنوان بالتفصيل..."></textarea>
+                    </div>
+
+                    <!-- Row 5: Notes -->
+                    <div class="mb-4">
+                        <label class="form-label fw-bold small">ملاحظات</label>
+                        <textarea name="notes" class="form-control" rows="2" placeholder="أي ملاحظات إضافية..."></textarea>
+                    </div>
+
+                    <!-- Attachments Section -->
+                    <div class="attachments-section border-top pt-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <label class="form-label fw-bold mb-0">
+                                <i class="fas fa-paperclip me-2 text-primary"></i> المرفقات
+                            </label>
+                            <small class="text-muted fst-italic">حتى 5 ملفات (PDF, Word, صور)</small>
+                        </div>
+                        
+                        <div id="attachmentsContainer">
+                            <div class="attachment-item d-flex align-items-center gap-2 mb-2 bg-light p-2 rounded border border-dashed shadow-sm">
+                                <input type="file" name="attachments" class="form-control form-control-sm border-0 bg-transparent" style="flex: 1;">
+                                <small class="text-muted small">لم تُحدد أي ملفات</small>
+                            </div>
+                        </div>
+                        
+                        <div class="mt-3">
+                            <button type="button" id="addAttachmentBtn" class="btn btn-sm btn-outline-primary px-3 rounded-pill">
+                                <i class="fas fa-plus me-1"></i> إضافة مرفق آخر
+                            </button>
+                        </div>
+                    </div>
+                </div>
+                <!-- Modal Footer aligned to right (RTL: right side) -->
+                <div class="modal-footer bg-light border-top-0 py-3 d-flex flex-row-reverse justify-content-start gap-2">
+                    <button type="submit" class="btn btn-success px-4" id="submitClientBtn">
+                        <span class="submit-text">حفظ العميل</span>
+                        <div class="spinner-border spinner-border-sm d-none" role="status"></div>
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary px-4" data-bs-dismiss="modal">إلغاء</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+{% block extra_js %}
+<script>
+    (function() {
+        'use strict';
+        
+        document.addEventListener('DOMContentLoaded', function() {
+            // --- Core Elements ---
+            const tableContent = document.getElementById('tableContent');
+            const loadingOverlay = document.getElementById('loadingOverlay');
+            const resetBtn = document.getElementById('resetBtn');
+            const filterInputs = document.querySelectorAll('.filter-input');
+            
+            // --- Modal Elements ---
+            const addClientModalEl = document.getElementById('addClientModal');
+            let bootstrapModal = null;
+            if (addClientModalEl) {
+                bootstrapModal = new bootstrap.Modal(addClientModalEl);
+            }
+            
+            const addClientForm = document.getElementById('addClientForm');
+            const addAttachmentBtn = document.getElementById('addAttachmentBtn');
+            const attachmentsContainer = document.getElementById('attachmentsContainer');
+            const submitBtn = document.getElementById('submitClientBtn');
+
+            let timeout = null;
+
+            // --- Filtering and Data Logic ---
+            function updateTable(page = 1) {
+                if (loadingOverlay) loadingOverlay.style.display = 'flex';
+                const params = new URLSearchParams();
+                filterInputs.forEach(input => {
+                    if (input.value) params.append(input.name, input.value);
+                });
+                params.append('page', page);
+
+                fetch(`${window.location.pathname}?${params.toString()}`, {
+                    headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                })
+                .then(response => response.text())
+                .then(html => {
+                    if (tableContent) tableContent.innerHTML = html;
+                    if (loadingOverlay) loadingOverlay.style.display = 'none';
+                    bindPagination();
+                })
+                .catch(error => {
+                    console.error('AJAX Error:', error);
+                    if (loadingOverlay) loadingOverlay.style.display = 'none';
+                });
+            }
+
+            function bindPagination() {
+                document.querySelectorAll('.pagination a').forEach(link => {
+                    link.addEventListener('click', function(e) {
+                        e.preventDefault();
+                        const page = this.getAttribute('data-page');
+                        if (page) updateTable(page);
+                    });
+                });
+            }
+
+            filterInputs.forEach(input => {
+                const eventType = input.tagName === 'SELECT' ? 'change' : 'input';
+                input.addEventListener(eventType, () => {
+                    clearTimeout(timeout);
+                    timeout = setTimeout(() => updateTable(), 300);
+                });
+                if (input.tagName === 'INPUT') {
+                    input.addEventListener('keypress', (e) => {
+                        if (e.key === 'Enter') {
+                            e.preventDefault();
+                            clearTimeout(timeout);
+                            updateTable();
+                        }
+                    });
+                }
+            });
+
+            if (resetBtn) {
+                resetBtn.addEventListener('click', () => {
+                    filterInputs.forEach(input => input.value = '');
+                    updateTable();
+                });
+            }
+
+            bindPagination();
+
+            // --- Add Client Modal Handling ---
+            if (addAttachmentBtn) {
+                // Remove potential duplicate listeners
+                const newBtn = addAttachmentBtn.cloneNode(true);
+                addAttachmentBtn.parentNode.replaceChild(newBtn, addAttachmentBtn);
+
+                newBtn.addEventListener('click', function() {
+                    const current = attachmentsContainer.querySelectorAll('.attachment-item').length;
+                    if (current >= 5) {
+                        alert('عذراً، الحد الأقصى للمرفقات هو 5 ملفات فقط.');
+                        return;
+                    }
+                    const div = document.createElement('div');
+                    div.className = 'attachment-item d-flex align-items-center gap-2 mb-2 bg-light p-2 rounded border border-dashed shadow-sm';
+                    div.innerHTML = `
+                        <input type="file" name="attachments" class="form-control form-control-sm border-0 bg-transparent" style="flex: 1;">
+                        <button type="button" class="btn btn-sm btn-outline-danger border-0 remove-attachment">
+                            <i class="fas fa-times"></i>
+                        </button>
+                    `;
+                    attachmentsContainer.appendChild(div);
+                    div.querySelector('.remove-attachment').addEventListener('click', () => div.remove());
+                });
+            }
+
+            if (addClientForm) {
+                addClientForm.addEventListener('submit', function(e) {
+                    e.preventDefault();
+                    if (!submitBtn) return;
+                    
+                    const submitText = submitBtn.querySelector('.submit-text');
+                    const spinner = submitBtn.querySelector('.spinner-border');
+
+                    submitBtn.disabled = true;
+                    if (submitText) submitText.classList.add('d-none');
+                    if (spinner) spinner.classList.remove('d-none');
+
+                    fetch('{% url "core:client_create" %}', {
+                        method: 'POST',
+                        body: new FormData(this),
+                        headers: { 'X-Requested-With': 'XMLHttpRequest' }
+                    })
+                    .then(res => res.json())
+                    .then(data => {
+                        if (data.status === 'success') {
+                            if (bootstrapModal) bootstrapModal.hide();
+                            addClientForm.reset();
+                            if (attachmentsContainer) {
+                                attachmentsContainer.innerHTML = `
+                                    <div class="attachment-item d-flex align-items-center gap-2 mb-2 bg-light p-2 rounded border border-dashed shadow-sm">
+                                        <input type="file" name="attachments" class="form-control form-control-sm border-0 bg-transparent" style="flex: 1;">
+                                        <small class="text-muted small">لم تُحدد أي ملفات</small>
+                                    </div>
+                                `;
+                            }
+                            updateTable();
+                        } else {
+                            let errors = '⚠️ يرجى تصحيح الأخطاء:\n';
+                            for (let field in data.errors) {
+                                errors += `• ${data.errors[field].join(', ')}\n`;
+                            }
+                            alert(errors);
+                        }
+                    })
+                    .catch(err => {
+                        console.error('Error:', err);
+                        alert('عذراً، حدث خطأ غير متوقع.');
+                    })
+                    .finally(() => {
+                        submitBtn.disabled = false;
+                        if (submitText) submitText.classList.remove('d-none');
+                        if (spinner) spinner.classList.add('d-none');
+                    });
+                });
+            }
+        });
+    })();
+</script>
+{% endblock %}
+{% endblock %}

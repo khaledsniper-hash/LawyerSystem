@@ -1,0 +1,221 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block page_heading %}المصروفات{% endblock %}
+
+{% block content %}
+<div class="row mb-4">
+    <!-- إجمالي المصروفات -->
+    <div class="col-xl-3 col-sm-6 mb-3">
+        <div class="card h-100 widget-card border-0 shadow-sm" style="border-radius: 15px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ total_expenses }} ج.م</h3>
+                        <p class="text-muted mb-0 small">إجمالي المصروفات</p>
+                    </div>
+                    <div class="icon-circle bg-danger bg-opacity-10 text-danger" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-money-bill-wave"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مصروفات الشهر -->
+    <div class="col-xl-3 col-sm-6 mb-3">
+        <div class="card h-100 widget-card border-0 shadow-sm" style="border-radius: 15px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ month_expenses }} ج.م</h3>
+                        <p class="text-muted mb-0 small">مصروفات الشهر</p>
+                    </div>
+                    <div class="icon-circle bg-warning bg-opacity-10 text-warning" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-calendar-alt"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مصروفات قضايا -->
+    <div class="col-xl-3 col-sm-6 mb-3">
+        <div class="card h-100 widget-card border-0 shadow-sm" style="border-radius: 15px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ case_expenses }} ج.م</h3>
+                        <p class="text-muted mb-0 small">مصروفات قضايا</p>
+                    </div>
+                    <div class="icon-circle bg-info bg-opacity-10 text-info" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-gavel"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- مصروفات إدارية -->
+    <div class="col-xl-3 col-sm-6 mb-3">
+        <div class="card h-100 widget-card border-0 shadow-sm" style="border-radius: 15px;">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h3 class="mb-1 fw-bold">{{ admin_expenses }} ج.م</h3>
+                        <p class="text-muted mb-0 small">مصروفات إدارية</p>
+                    </div>
+                    <div class="icon-circle bg-primary bg-opacity-10 text-primary" style="width: 50px; height: 50px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.5rem;">
+                        <i class="fas fa-building"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- شريط البحث والفلترة -->
+<div class="card border-0 shadow-sm mb-4" style="border-radius: 15px;">
+    <div class="card-body">
+        <form method="GET" class="row g-3 align-items-center">
+            <div class="col-md-3">
+                <select name="category" class="form-select form-control" aria-label="الفئة">
+                    <option value="">كل الفئات</option>
+                    {% for key, value in expense_categories %}
+                    <option value="{{ key }}" {% if request.GET.category == key %}selected{% endif %}>{{ value }}</option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select name="case" class="form-select form-control d-inline-block" aria-label="كل القضايا">
+                    <option value="">كل القضايا</option>
+                    {% for c in cases %}
+                    <option value="{{ c.id }}" {% if request.GET.case == c.id|stringformat:"s" %}selected{% endif %}>
+                        {{ c.case_number }} - {{ c.client.full_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="start_date" class="form-control" value="{{ request.GET.start_date }}">
+            </div>
+            <div class="col-md-2">
+                <input type="date" name="end_date" class="form-control" value="{{ request.GET.end_date }}">
+            </div>
+            <div class="col-md-2 d-flex gap-2">
+                <button type="submit" class="btn btn-primary w-100">بحث</button>
+                <a href="{% url 'core:expenses' %}" class="btn btn-outline-secondary">إلغاء</a>
+            </div>
+        </form>
+    </div>
+</div>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+    <h5 class="mb-0 fw-bold"><i class="fas fa-list-ul me-2"></i>سجل المصروفات</h5>
+    <div class="d-flex gap-2">
+        <a href="{% url 'core:expense_create' %}" class="btn btn-success" style="background-color: #059669; border: none; border-radius: 8px;">
+            <i class="fas fa-plus me-1"></i> إضافة
+        </a>
+        <button class="btn btn-light shadow-sm" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+            <i class="fas fa-file-export me-1"></i> تصدير
+        </button>
+    </div>
+</div>
+
+<div class="card section-card border-0 shadow-sm" style="border-radius: 15px;">
+    <div class="card-body p-0">
+        <div class="table-responsive">
+            <table class="table finance-table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th class="ps-4">#</th>
+                        <th>الوصف</th>
+                        <th>الفئة</th>
+                        <th>القضية</th>
+                        <th>المبلغ</th>
+                        <th>التاريخ</th>
+                        <th>الإيصال</th>
+                        <th class="text-end pe-4">الإجراءات</th>
+                    </tr>
+                </thead>
+                <tbody class="border-top-0">
+                    {% for expense in expenses %}
+                    <tr>
+                        <td class="ps-4 fw-bold text-muted">{{ expense.id }}</td>
+                        <td class="fw-semibold">{{ expense.description }}</td>
+                        <td>
+                            <span class="badge" style="background-color: #a855f7; border-radius: 8px; padding: 0.4rem 0.6rem;">
+                                {{ expense.get_category_display }}
+                            </span>
+                        </td>
+                        <td>
+                            {% if expense.case %}
+                            <span class="badge bg-dark rounded-pill">
+                                <i class="fas fa-gavel me-1"></i> {{ expense.case.case_number }}
+                            </span>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="fw-bold" style="color: #ef4444;">{{ expense.amount }} ج.م</td>
+                        <td>{{ expense.date|date:"d F Y" }}</td>
+                        <td>
+                            {% if expense.receipt %}
+                            <a href="{{ expense.receipt.url }}" target="_blank" class="btn btn-sm btn-link text-primary p-0">
+                                <i class="fas fa-paperclip"></i> عرض
+                            </a>
+                            {% else %}
+                            <span class="text-muted">-</span>
+                            {% endif %}
+                        </td>
+                        <td class="text-end pe-4">
+                            <!-- لم يتم إنشاء Edit Expense حتى الآن، سنضع placeholder أو رابط خفي -->
+                            <button class="btn btn-sm" style="background-color: #f59e0b; color: white; border-radius: 6px;">
+                                <i class="fas fa-edit"></i>
+                            </button>
+                            <button class="btn btn-sm" style="background-color: #ef4444; color: white; border-radius: 6px;">
+                                <i class="fas fa-trash"></i>
+                            </button>
+                        </td>
+                    </tr>
+                    {% empty %}
+                    <tr>
+                        <td colspan="8" class="text-center py-5 text-muted">
+                            <i class="fas fa-box-open fs-1 text-light mb-3"></i>
+                            <p class="mb-0">لا توجد مصروفات مسجلة.</p>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+{% if is_paginated %}
+<div class="mt-4 d-flex justify-content-center">
+    <nav>
+        <ul class="pagination pagination-sm">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"><i class="fas fa-chevron-right"></i></a>
+            </li>
+            {% endif %}
+            
+            {% for num in paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}{% if request.GET.category %}&category={{ request.GET.category }}{% endif %}"><i class="fas fa-chevron-left"></i></a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+</div>
+{% endif %}
+
+{% endblock %}

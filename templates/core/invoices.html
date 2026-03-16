@@ -1,0 +1,281 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency %}
+
+{% block title %}إدارة الفواتير - ميزان العدالة{% endblock %}
+{% block page_heading %}إدارة الفواتير{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.invoices-hero {
+    background: linear-gradient(135deg, #f59e0b 0%, #fbbf24 50%, #fcd34d 100%);
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 30px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+.invoices-hero::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.invoices-hero h1 { font-size: 2rem; margin-bottom: 8px; }
+.invoices-hero p { opacity: 0.9; font-size: 1rem; }
+.hero-stats { display: flex; gap: 30px; margin-top: 30px; flex-wrap: wrap; }
+.hero-stat {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    padding: 20px 30px;
+    border-radius: 16px;
+    min-width: 150px;
+}
+.hero-stat .value { font-size: 2.5rem; font-weight: 800; display: block; }
+.hero-stat .label { font-size: 0.85rem; opacity: 0.9; }
+
+.filter-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+.invoices-table {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+.invoices-table thead {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+.invoices-table th {
+    padding: 16px;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
+}
+.invoices-table td {
+    padding: 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+.invoices-table tbody tr:hover {
+    background: #f8fafc;
+}
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-badge.paid { background: #d1fae5; color: #059669; }
+.status-badge.pending { background: #fef3c7; color: #d97706; }
+.status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+.action-btn.view { background: #dbeafe; color: #2563eb; }
+.action-btn.view:hover { background: #2563eb; color: white; }
+.action-btn.print { background: #e0e7ff; color: #4f46e5; }
+.action-btn.print:hover { background: #4f46e5; color: white; }
+.action-btn.edit { background: #fef3c7; color: #d97706; }
+.action-btn.edit:hover { background: #d97706; color: white; }
+.action-btn.delete { background: #fee2e2; color: #dc2626; }
+.action-btn.delete:hover { background: #dc2626; color: white; }
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+}
+.empty-state i { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+.invoice-number {
+    font-family: 'Courier New', monospace;
+    font-weight: 600;
+    color: #4f46e5;
+}
+.amount-paid { color: #059669; font-weight: 600; }
+.amount-pending { color: #d97706; font-weight: 600; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <!-- Hero Section -->
+    <div class="invoices-hero">
+        <h1>📄 إدارة الفواتير</h1>
+        <p>متابعة وتحصيل فواتير المكتب</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="value">{{ total_invoices }}</span>
+                <span class="label">إجمالي الفواتير</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ paid_invoices }}</span>
+                <span class="label">مدفوعة</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ pending_invoices }}</span>
+                <span class="label">قيد الانتظار</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ total_amount|currency_short }}</span>
+                <span class="label">إجمالي المحصل</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value" style="color: #fef3c7;">{{ pending_amount|currency_short }}</span>
+                <span class="label">مبالغ قيد الانتظار</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-4">
+                <label class="form-label">حالة الفاتورة</label>
+                <select name="status" class="form-select">
+                    <option value="">كل الحالات</option>
+                    <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>مدفوعة</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>قيد الانتظار</option>
+                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>ملغاة</option>
+                </select>
+            </div>
+            <div class="col-md-5">
+                <label class="form-label">بحث</label>
+                <input type="text" name="search" class="form-control" placeholder="رقم الفاتورة أو اسم العميل" value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-3 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="fas fa-search"></i> بحث
+                </button>
+                <a href="{% url 'core:invoices' %}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i>
+                </a>
+            </div>
+            <div class="col-12 d-flex justify-content-between align-items-center">
+                <a href="{% url 'core:invoices' %}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> إعادة تعيين
+                </a>
+                <a href="{% url 'core:invoice_create' %}" class="btn btn-warning">
+                    <i class="fas fa-plus"></i> إضافة فاتورة
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Invoices Table -->
+    <div class="invoices-table">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>رقم الفاتورة</th>
+                    <th>العميل</th>
+                    <th>التاريخ</th>
+                    <th>المبلغ الفرعي</th>
+                    <th>الضريبة</th>
+                    <th>الإجمالي</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in invoices %}
+                <tr>
+                    <td>
+                        <span class="invoice-number">{{ invoice.invoice_number }}</span>
+                    </td>
+                    <td>
+                        <div class="fw-bold">{{ invoice.client.full_name }}</div>
+                        <small class="text-muted">{{ invoice.client.phone }}</small>
+                    </td>
+                    <td>{{ invoice.date|date:"Y-m-d" }}</td>
+                    <td>{{ invoice.subtotal|currency_short }}</td>
+                    <td>{{ invoice.tax_rate }}%</td>
+                    <td class="amount-{{ invoice.status }}">
+                        {{ invoice.total|currency_short }}
+                    </td>
+                    <td>
+                        <span class="status-badge {{ invoice.status }}">
+                            {% if invoice.status == 'paid' %}مدفوعة
+                            {% elif invoice.status == 'pending' %}قيد الانتظار
+                            {% else %}ملغاة{% endif %}
+                        </span>
+                    </td>
+                    <td>
+                        <div class="d-flex gap-2">
+                            <a href="{% url 'core:invoice_detail' invoice.pk %}" class="action-btn view" title="عرض">
+                                <i class="fas fa-eye"></i>
+                            </a>
+                            <a href="#" class="action-btn print" title="طباعة" onclick="window.print(); return false;">
+                                <i class="fas fa-print"></i>
+                            </a>
+                            <a href="{% url 'core:invoice_update' invoice.pk %}" class="action-btn edit" title="تعديل">
+                                <i class="fas fa-edit"></i>
+                            </a>
+                            <a href="{% url 'core:invoice_delete' invoice.pk %}" class="action-btn delete" title="حذف">
+                                <i class="fas fa-trash"></i>
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% empty %}
+                <tr>
+                    <td colspan="8">
+                        <div class="empty-state">
+                            <i class="fas fa-file-invoice"></i>
+                            <h5>لا توجد فواتير لعرضها</h5>
+                            <p class="text-muted">ابدأ بإضافة فاتورة جديدة</p>
+                            <a href="{% url 'core:invoice_create' %}" class="btn btn-warning">
+                                <i class="fas fa-plus"></i> إضافة فاتورة
+                            </a>
+                        </div>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ request.GET.status }}&search={{ request.GET.search }}">السابق</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&status={{ request.GET.status }}&search={{ request.GET.search }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ request.GET.status }}&search={{ request.GET.search }}">التالي</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

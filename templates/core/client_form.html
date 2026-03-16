@@ -1,0 +1,63 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}
+    {% if object %}تعديل عميل{% else %}إضافة عميل{% endif %} - ميزان العدالة
+{% endblock %}
+
+{% block page_heading %}
+    {% if object %}تعديل بيانات العميل: {{ object.full_name }}{% else %}إضافة عميل جديد{% endif %}
+{% endblock %}
+
+{% block content %}
+<div class="row justify-content-center">
+    <div class="col-md-8">
+        <div class="card shadow-sm border-0 rounded-4">
+            <div class="card-body p-4">
+                <form method="post" class="needs-validation" novalidate>
+                    {% csrf_token %}
+                    
+                    <div class="row g-3">
+                        {% for field in form %}
+                        <div class="col-md-{% if field.name == 'full_name' %}12{% else %}6{% endif %}">
+                            <label class="form-label fw-bold">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.errors %}
+                            <div class="text-danger small mt-1">
+                                {{ field.errors|striptags }}
+                            </div>
+                            {% endif %}
+                            {% if field.help_text %}
+                            <div class="form-text small">{{ field.help_text }}</div>
+                            {% endif %}
+                        </div>
+                        {% endfor %}
+                    </div>
+
+                    <div class="mt-4 pt-3 border-top d-flex gap-2">
+                        <button type="submit" class="btn btn-primary px-4">
+                            <i class="fas fa-save me-1"></i> حفظ البيانات
+                        </button>
+                        <a href="{% url 'core:clients' %}" class="btn btn-outline-secondary px-4">
+                            إلغاء
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+/* تجميل المدخلات تلقائياً إذا لم تكن منسقة بمساعدة الـ Widgets */
+.card input, .card select, .card textarea {
+    border-radius: 8px;
+    padding: 10px 12px;
+    border: 1px solid #dee2e6;
+}
+.card input:focus, .card select:focus {
+    border-color: #4f46e5;
+    box-shadow: 0 0 0 0.2rem rgba(79, 70, 229, 0.1);
+}
+</style>
+{% endblock %}

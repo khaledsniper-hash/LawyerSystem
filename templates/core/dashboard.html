@@ -1,0 +1,630 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency %}
+
+{% block title %}الرئيسية - ميزان العدالة{% endblock %}
+{% block page_heading %}الرئيسية{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .dashboard-hero {
+        background: linear-gradient(135deg, #1e3a5f 0%, #2563eb 50%, #3b82f6 100%);
+        border-radius: 24px;
+        padding: 40px;
+        margin-bottom: 30px;
+        color: white;
+        position: relative;
+        overflow: hidden;
+    }
+
+    .dashboard-hero::before {
+        content: "";
+        position: absolute;
+        top: -50%;
+        right: -20%;
+        width: 400px;
+        height: 400px;
+        background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 0%, transparent 70%);
+    }
+
+    .dashboard-hero h1 {
+        font-size: 2rem;
+        margin-bottom: 8px;
+    }
+
+    .dashboard-hero p {
+        opacity: 0.9;
+        font-size: 1rem;
+    }
+
+    .hero-stats {
+        display: flex;
+        gap: 30px;
+        margin-top: 30px;
+        flex-wrap: wrap;
+    }
+
+    .hero-stat {
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(12px);
+        padding: 15px 25px;
+        border-radius: 18px;
+        min-width: 140px;
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        text-align: center;
+    }
+
+    .hero-stat .value {
+        font-size: 2.2rem;
+        font-weight: 800;
+        display: block;
+        line-height: 1.1;
+        margin-bottom: 5px;
+    }
+
+    .hero-stat .label {
+        font-size: 0.8rem;
+        font-weight: 500;
+        opacity: 0.85;
+        text-transform: uppercase;
+        letter-spacing: 0.5px;
+    }
+
+    .dashboard-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+        gap: 20px;
+        margin-bottom: 30px;
+    }
+
+    .dash-card {
+        background: var(--bg-card, #fff);
+        border-radius: var(--radius-lg, 14px);
+        padding: 24px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+    .dash-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 8px 25px rgba(0, 0, 0, 0.1);
+    }
+
+    .dash-card-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 12px;
+    }
+
+    .dash-card-icon {
+        width: 48px;
+        height: 48px;
+        border-radius: 12px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 1.25rem;
+    }
+
+    .dash-card-icon.blue {
+        background: #dbeafe;
+        color: #2563eb;
+    }
+
+    .dash-card-icon.green {
+        background: #d1fae5;
+        color: #059669;
+    }
+
+    .dash-card-icon.yellow {
+        background: #fef3c7;
+        color: #d97706;
+    }
+
+    .dash-card-icon.purple {
+        background: #ede9fe;
+        color: #7c3aed;
+    }
+
+    .dash-card-value {
+        font-size: 2rem;
+        font-weight: 700;
+        color: var(--text-primary, #1e293b);
+    }
+
+    .dash-card-label {
+        font-size: 0.9rem;
+        color: var(--text-secondary, #64748b);
+        margin-top: 4px;
+    }
+
+    .section-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 24px;
+    }
+
+    .section-card {
+        background: var(--bg-card, #fff);
+        border-radius: var(--radius-lg, 14px);
+        padding: 24px;
+        border: 1px solid var(--border-color, #e2e8f0);
+        box-shadow: var(--shadow-sm, 0 1px 3px rgba(0, 0, 0, 0.08));
+    }
+
+    .section-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 20px;
+    }
+
+    .section-title {
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: var(--text-primary, #1e293b);
+        margin: 0;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+    }
+
+    .section-title i {
+        color: #4f46e5;
+    }
+
+    .activity-item {
+        display: flex;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border-color, #f1f5f9);
+        transition: background 0.2s;
+    }
+
+    .activity-item:last-child {
+        border-bottom: none;
+    }
+
+    .activity-item:hover {
+        background: var(--hover-bg, #f8fafc);
+        border-radius: 8px;
+        padding: 14px 10px;
+    }
+
+    .activity-icon {
+        width: 44px;
+        height: 44px;
+        border-radius: 12px;
+        background: #dbeafe;
+        color: #2563eb;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .activity-content {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .activity-title {
+        font-weight: 600;
+        color: var(--text-primary, #1e293b);
+        margin-bottom: 2px;
+    }
+
+    .activity-desc {
+        font-size: 0.85rem;
+        color: var(--text-secondary, #64748b);
+    }
+
+    .activity-time {
+        font-size: 0.8rem;
+        color: var(--text-muted, #94a3b8);
+        margin-top: 4px;
+    }
+
+    .today-item {
+        display: flex;
+        gap: 16px;
+        padding: 14px 0;
+        border-bottom: 1px solid var(--border-color, #f1f5f9);
+    }
+
+    .today-item:last-child {
+        border-bottom: none;
+    }
+
+    .today-time {
+        font-weight: 600;
+        color: #4f46e5;
+        min-width: 55px;
+        font-size: 0.95rem;
+    }
+
+    .today-info {
+        flex: 1;
+    }
+
+    .today-title {
+        font-weight: 600;
+        color: var(--text-primary, #1e293b);
+    }
+
+    .today-subtitle {
+        font-size: 0.85rem;
+        color: var(--text-secondary, #64748b);
+        margin-top: 2px;
+    }
+
+    .toolbar-btn {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 10px 18px;
+        border-radius: 10px;
+        font-weight: 600;
+        font-size: 0.9rem;
+        text-decoration: none;
+        transition: all 0.2s;
+        border: none;
+    }
+
+    .toolbar-btn.primary {
+        background: linear-gradient(135deg, #4f46e5, #6366f1);
+        color: white;
+    }
+
+    .toolbar-btn.primary:hover {
+        background: linear-gradient(135deg, #4338ca, #4f46e5);
+        color: white;
+    }
+
+    .toolbar-btn.secondary {
+        background: #f1f5f9;
+        color: #475569;
+    }
+
+    .toolbar-btn.secondary:hover {
+        background: #e2e8f0;
+        color: #1e293b;
+    }
+
+    .quick-actions-bar {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+        gap: 12px;
+        margin-bottom: 30px;
+    }
+
+    .quick-action-btn {
+        padding: 10px 15px;
+        border-radius: 12px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        transition: all 0.2s ease;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        background: var(--bg-card);
+        color: var(--text-primary);
+        border: 1px solid var(--border-color);
+        text-decoration: none;
+        justify-content: flex-start;
+    }
+
+    .quick-action-btn:hover {
+        transform: translateY(-2px);
+        border-color: #4f46e5;
+        color: #4f46e5;
+        box-shadow: 0 4px 12px rgba(79, 70, 229, 0.08);
+    }
+
+    .quick-action-btn i {
+        font-size: 1rem;
+        width: 30px;
+        height: 30px;
+        border-radius: 8px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        flex-shrink: 0;
+    }
+
+    .btn-create-case i {
+        background: #eef2ff;
+        color: #4f46e5;
+    }
+
+    .btn-create-client i {
+        background: #f0fdf4;
+        color: #16a34a;
+    }
+
+    .btn-create-opponent i {
+        background: #fff7ed;
+        color: #ea580c;
+    }
+
+    .btn-create-apt i {
+        background: #fdf2f8;
+        color: #db2777;
+    }
+
+    .btn-create-session i {
+        background: #f0f9ff;
+        color: #0284c7;
+    }
+
+    .empty-state {
+        text-align: center;
+        padding: 30px;
+        color: #94a3b8;
+        font-size: 0.95rem;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <!-- Hero Section -->
+    <div class="dashboard-hero">
+        <h1>مرحباً بك في ميزان العدالة 👋</h1>
+        <p>نظام إدارة مكاتب المحاماة المتكامل</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="value">{{ total_cases }}</span>
+                <span class="label">إجمالي القضايا</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ active_cases }}</span>
+                <span class="label">قضايا نشطة</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ total_clients }}</span>
+                <span class="label">العملاء</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ todays_sessions_count }}</span>
+                <span class="label">جلسات اليوم</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ pending_tasks_count }}</span>
+                <span class="label">مهام معلقة</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Quick Actions Bar (Replacing the 4 stats cards) -->
+    <div class="quick-actions-bar">
+        <button type="button" class="quick-action-btn btn-create-case" data-bs-toggle="modal"
+            data-bs-target="#addCaseModal">
+            <i class="fas fa-plus"></i>
+            <span>إضافة قضية</span>
+        </button>
+        <a href="{% url 'core:client_create' %}" class="quick-action-btn btn-create-client">
+            <i class="fas fa-user-plus"></i>
+            <span>إضافة عميل</span>
+        </a>
+        <a href="{% url 'core:opponent_create' %}" class="quick-action-btn btn-create-opponent">
+            <i class="fas fa-user-shield"></i>
+            <span>إضافة خصم</span>
+        </a>
+        <a href="{% url 'core:appointment_create' %}" class="quick-action-btn btn-create-apt">
+            <i class="fas fa-calendar-plus"></i>
+            <span>إضافة ميعاد</span>
+        </a>
+        <a href="{% url 'core:session_create' %}" class="quick-action-btn btn-create-session">
+            <i class="fas fa-gavel"></i>
+            <span>إضافة جلسة</span>
+        </a>
+    </div>
+
+    <!-- Section Grid: Recent Activity + Today's Schedule -->
+    <div class="section-grid">
+        <!-- Recent Activity -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fas fa-history"></i> آخر النشاطات</h3>
+                <a href="{% url 'core:cases' %}" style="color:#3b82f6;font-size:0.85rem">عرض الكل</a>
+            </div>
+            {% if recent_cases %}
+            {% for case in recent_cases %}
+            <div class="activity-item">
+                <div class="activity-icon"><i class="fas fa-gavel"></i></div>
+                <div class="activity-content">
+                    <div class="activity-title">{{ case.subject|truncatewords:8 }}</div>
+                    <div class="activity-desc">{{ case.case_number }} - {{ case.client.full_name }}</div>
+                    <div class="activity-time">{{ case.created_at|date:"d F Y" }}</div>
+                </div>
+            </div>
+            {% endfor %}
+            {% else %}
+            <div class="empty-state">
+                <p>لا توجد قضايا حديثة</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Today's Schedule (Sessions + Appointments) -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-calendar-alt"></i> جدول اليوم
+                </h3>
+                <a href="{% url 'core:appointments' %}" style="color:#3b82f6;font-size:0.85rem">عرض الكل</a>
+            </div>
+            <div id="todaySchedule">
+                {% if todays_sessions or todays_appointments %}
+
+                <!-- الجلسات القضائية -->
+                {% for session in todays_sessions %}
+                <div class="today-item">
+                    <div class="today-time">
+                        <span class="badge bg-danger" style="font-size: 0.7rem;">
+                            <i class="fas fa-gavel"></i> جلسة
+                        </span>
+                    </div>
+                    <div class="today-info">
+                        <div class="today-title">
+                            {{ session.session_type|default:"جلسة محكمة" }}
+                        </div>
+                        <div class="today-subtitle">
+                            {{ session.case.case_number }} - {{ session.case.subject|truncatewords:5 }}
+                        </div>
+                        {% if session.court %}
+                        <small class="text-muted">
+                            <i class="fas fa-building"></i> {{ session.court|truncatewords:3 }}
+                        </small>
+                        {% endif %}
+                    </div>
+                </div>
+                {% endfor %}
+
+                <!-- المواعيد -->
+                {% for apt in todays_appointments %}
+                <div class="today-item">
+                    <div class="today-time">
+                        <span class="badge bg-info" style="font-size: 0.7rem;">
+                            {{ apt.get_type_display|truncatechars:10 }}
+                        </span>
+                    </div>
+                    <div class="today-info">
+                        <div class="today-title">
+                            {% if apt.datetime %}
+                            <i class="fas fa-clock"></i> {{ apt.datetime|time:"H:i" }}
+                            {% endif %}
+                        </div>
+                        <div class="today-subtitle">
+                            {% if apt.client %}
+                            <i class="fas fa-user"></i> {{ apt.client.full_name }}
+                            {% else %}
+                            {{ apt.location|default:"—" }}
+                            {% endif %}
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+
+                {% else %}
+                <div class="empty-state">
+                    <i class="fas fa-calendar-check"></i>
+                    <p>لا توجد جلسات أو مواعيد اليوم</p>
+                </div>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Financial Summary + Quick Actions -->
+    <div class="section-grid" style="margin-top: 24px;">
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title"><i class="fas fa-coins"></i> الملخص المالي</h3>
+            </div>
+            <div class="d-flex gap-4 flex-wrap">
+                <div>
+                    <div class="text-muted small">إجمالي الأتعاب</div>
+                    <!-- ✅ تم التحديث: استخدام currency -->
+                    <div class="fw-bold fs-5 text-success">{{ total_fees|currency }}</div>
+                </div>
+                <div>
+                    <div class="text-muted small">إجمالي المصروفات</div>
+                    <!-- ✅ تم التحديث: استخدام currency -->
+                    <div class="fw-bold fs-5 text-danger">{{ total_expenses|currency }}</div>
+                </div>
+                <div>
+                    <div class="text-muted small">صافي الربح</div>
+                    <!-- ✅ تم التحديث: استخدام currency -->
+                    <div class="fw-bold fs-5 text-primary">{{ net_profit|currency }}</div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Add Case Modal -->
+<div class="modal fade" id="addCaseModal" tabindex="-1" aria-labelledby="addCaseModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="addCaseModalLabel">
+                    <i class="fas fa-gavel me-2"></i>إضافة قضية جديدة
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="إغلاق"></button>
+            </div>
+            <div class="modal-body" id="modalCaseContent">
+                {% include 'core/case_form.html' %}
+            </div>
+            <div class="modal-footer border-top-0 pt-0">
+                <button type="button" class="btn btn-outline-secondary" data-bs-dismiss="modal">
+                    <i class="fas fa-times ms-1"></i> إلغاء
+                </button>
+                <button type="submit" form="addCaseForm" class="btn btn-primary">
+                    <i class="fas fa-save ms-1"></i> حفظ القضية
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- AJAX Form Submission for Add Case Modal -->
+<script>
+    document.addEventListener('DOMContentLoaded', function () {
+        const modal = document.getElementById('addCaseModal');
+        const form = document.getElementById('addCaseForm');
+
+        if (!form) return;
+
+        form.addEventListener('submit', function (e) {
+            e.preventDefault();
+
+            const formData = new FormData(form);
+            const submitBtn = form.querySelector('button[type="submit"]');
+            const originalText = submitBtn.innerHTML;
+
+            // حالة التحميل
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> جاري الحفظ...';
+
+            fetch('{% url "core:case_create" %}', {
+                method: 'POST',
+                body: formData,
+                headers: { 'X-Requested-With': 'XMLHttpRequest' }
+            })
+                .then(res => res.json())
+                .then(data => {
+                    if (data.status === 'success') {
+                        // نجاح: إغلاق النافذة وتحديث الصفحة
+                        bootstrap.Modal.getInstance(modal).hide();
+                        window.location.reload();
+                    } else if (data.status === 'error') {
+                        // عرض الأخطاء
+                        let msg = '⚠️ يرجى تصحيح الأخطاء:\n';
+                        for (let field in data.errors) {
+                            data.errors[field].forEach(err => {
+                                msg += `• ${field}: ${err}\n`;
+                            });
+                        }
+                        alert(msg);
+                    } else {
+                        alert('❌ حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+                    }
+                })
+                .catch(err => {
+                    console.error('Error:', err);
+                    alert('❌ حدث خطأ غير متوقع. يرجى المحاولة مرة أخرى.');
+                })
+                .finally(() => {
+                    // إعادة الزر لحالته
+                    submitBtn.disabled = false;
+                    submitBtn.innerHTML = originalText;
+                });
+        });
+    });
+</script>
+{% endblock %}

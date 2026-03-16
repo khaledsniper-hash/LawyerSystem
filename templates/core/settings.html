@@ -1,0 +1,318 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}الإعدادات - ميزان العدالة{% endblock %}
+{% block page_heading %}الإعدادات{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+    .settings-tabs .nav-link {
+        border-radius: 12px;
+        font-weight: 600;
+        color: var(--text-primary);
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        padding: 10px 14px;
+    }
+    .settings-tabs .nav-link.active {
+        background: linear-gradient(135deg,#8b5cf6,#6d28d9);
+        color: #fff;
+        border-color: transparent;
+    }
+    .tab-pane { display: none; }
+    .tab-pane.active { display: block; }
+    .hero-box {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 16px;
+        padding: 28px;
+        box-shadow: var(--shadow-sm);
+        color: var(--text-primary);
+    }
+    .backup-buttons .btn {
+        padding: 14px 18px;
+        font-weight: 700;
+        border-radius: 12px;
+    }
+    
+    /* Designer Tab Styles */
+    .designer-card {
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 20px;
+        padding: 40px;
+        box-shadow: var(--shadow-sm);
+        position: relative;
+        overflow: hidden;
+    }
+    [data-theme="light"] .designer-card {
+        background: linear-gradient(135deg, #ffffff 0%, #f8faff 100%);
+        border: 1px solid rgba(139, 92, 246, 0.1);
+        box-shadow: 0 10px 30px rgba(139, 92, 246, 0.05);
+    }
+    .designer-card::before {
+        content: "";
+        position: absolute;
+        top: -50px;
+        right: -50px;
+        width: 150px;
+        height: 150px;
+        background: linear-gradient(135deg, rgba(139, 92, 246, 0.1), transparent);
+        border-radius: 50%;
+        z-index: 0;
+    }
+    .designer-welcome {
+        color: var(--text-primary);
+        font-size: 1.25rem;
+        line-height: 1.6;
+    }
+    .designer-name {
+        background: linear-gradient(135deg, #8b5cf6, #6d28d9);
+        -webkit-background-clip: text;
+        background-clip: text;
+        -webkit-text-fill-color: transparent;
+        font-weight: 800;
+        font-size: 2rem;
+    }
+    .contact-item {
+        display: flex;
+        align-items: center;
+        gap: 15px;
+        padding: 12px 20px;
+        background: var(--bg-card);
+        border: 1px solid var(--border-color);
+        border-radius: 12px;
+        transition: all 0.3s ease;
+        text-decoration: none;
+        color: var(--text-primary);
+        margin-bottom: 10px;
+    }
+    .contact-item:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+        border-color: #8b5cf6;
+        color: #8b5cf6;
+    }
+    [data-theme="dark"] .contact-item {
+        background: var(--bg-input);
+    }
+    .contact-icon {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background: rgba(139, 92, 246, 0.1);
+        color: #8b5cf6;
+        border-radius: 10px;
+        font-size: 1.2rem;
+    }
+    .cta-box {
+        background: var(--hover-bg);
+        border-radius: 12px;
+        padding: 20px;
+        border-right: 4px solid #8b5cf6;
+    }
+    [data-theme="dark"] .cta-box p {
+        color: var(--text-primary) !important;
+    }
+    .designer-logo {
+        width: 120px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 20px;
+        border: 4px solid var(--bg-card);
+        box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+        margin-bottom: 20px;
+    }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <div class="hero-box mb-3 text-center">
+        <h2 class="fw-bold mb-2"><i class="fas fa-sliders-h me-2"></i> الإعدادات</h2>
+        <p class="text-muted mb-0">إدارة إعدادات النظام والنسخ الاحتياطي</p>
+    </div>
+
+    {% if messages %}
+    <div class="mb-3">
+        {% for message in messages %}
+        <div class="alert alert-{{ message.tags }} mb-2" role="alert">{{ message }}</div>
+        {% endfor %}
+    </div>
+    {% endif %}
+
+    <div class="card border-0 shadow-sm">
+        <div class="card-body">
+            <ul class="nav nav-pills flex-wrap gap-2 settings-tabs" id="settingsTabs">
+                <li class="nav-item"><a class="nav-link active" data-target="#tab-office" href="#">بيانات المكتب</a></li>
+                <li class="nav-item"><a class="nav-link" data-target="#tab-lists" href="#">إدارة القوائم</a></li>
+                <li class="nav-item"><a class="nav-link" data-target="#tab-users" href="#">المستخدمون</a></li>
+                <li class="nav-item"><a class="nav-link" data-target="#tab-backup" href="#">النسخ الاحتياطي</a></li>
+                <li class="nav-item"><a class="nav-link" data-target="#tab-designer" href="#">المصمم</a></li>
+            </ul>
+        </div>
+    </div>
+
+    <div class="card border-0 shadow-sm mt-3">
+        <div class="card-body">
+            <!-- النسخ الاحتياطي -->
+            <!-- بيانات المكتب (نشط افتراضياً) -->
+            <div id="tab-office" class="tab-pane active">
+                <div class="text-center mb-4">
+                    <h4 class="fw-bold mb-1"><i class="fas fa-building me-2"></i> بيانات المكتب</h4>
+                    <p class="text-muted mb-0">تعديل بيانات ورأس مطبوعات المكتب</p>
+                </div>
+                <div class="alert alert-info py-4 text-center">
+                    سيتم إضافة إعدادات بيانات المكتب هنا قريباً.
+                </div>
+            </div>
+
+            <!-- إدارة القوائم (مجمعة) -->
+            <div id="tab-lists" class="tab-pane">
+                <div class="text-center mb-4">
+                    <h4 class="fw-bold mb-1"><i class="fas fa-list-ul me-2"></i> إدارة القوائم</h4>
+                    <p class="text-muted mb-0">إدارة المحاكم، أنواع القضايا، الضرائب والفواتير</p>
+                </div>
+                <div class="row g-3">
+                    <div class="col-md-6"><div class="p-3 border rounded bg-light">المحاكم والدوائر (قريباً)</div></div>
+                    <div class="col-md-6"><div class="p-3 border rounded bg-light">أنواع القضايا (قريباً)</div></div>
+                    <div class="col-md-6"><div class="p-3 border rounded bg-light">إعدادات الضرائب (قريباً)</div></div>
+                    <div class="col-md-6"><div class="p-3 border rounded bg-light">تنسيق الفواتير (قريباً)</div></div>
+                </div>
+            </div>
+
+            <!-- المستخدمون -->
+            <div id="tab-users" class="tab-pane">
+                <div class="text-center mb-4">
+                    <h4 class="fw-bold mb-1"><i class="fas fa-users-cog me-2"></i> إدارة المستخدمين</h4>
+                    <p class="text-muted mb-0">إضافة وتعديل صلاحيات مستخدمي النظام</p>
+                </div>
+                <div class="alert alert-warning py-4 text-center">
+                    سيتم إضافة إعدادات المستخدمين هنا قريباً.
+                </div>
+            </div>
+
+            <!-- النسخ الاحتياطي -->
+            <div id="tab-backup" class="tab-pane">
+                <div class="text-center mb-4">
+                    <h4 class="fw-bold mb-1"><i class="fas fa-database me-2"></i> النسخ الاحتياطي</h4>
+                    <p class="text-muted mb-0">إدارة النسخ الاحتياطية للبيانات</p>
+                </div>
+                <div class="d-flex flex-column flex-md-row gap-3 justify-content-center backup-buttons">
+                    <form method="post" action="{% url 'core:settings' %}" class="flex-fill">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="backup">
+                        <input type="hidden" name="backup_path" value="{{ backup_default_path }}">
+                        <button type="submit" class="btn w-100 text-white" style="background:#8b5cf6;">
+                            <i class="fas fa-cloud-upload-alt me-2"></i> إنشاء نسخة احتياطية
+                        </button>
+                    </form>
+
+                    <form method="post" action="{% url 'core:settings' %}" enctype="multipart/form-data" class="flex-fill" id="restoreForm">
+                        {% csrf_token %}
+                        <input type="hidden" name="action" value="restore">
+                        <input type="hidden" name="backup_path" value="{{ backup_default_path }}">
+                        <input type="file" name="backup_file" id="restoreFile" class="d-none" accept=".sqlite3,.db,.sqlite" required>
+                        <button type="button" id="restoreButton" class="btn w-100 text-white" style="background:#f59e0b;">
+                            <i class="fas fa-upload me-2"></i> استعادة نسخة
+                        </button>
+                    </form>
+                </div>
+                <p class="text-muted small mt-3 mb-0 text-center">
+                    يتم الحفظ افتراضياً داخل مجلد البرنامج: {{ backup_default_path }}. يمكنك اختيار مسار آخر إذا لزم الأمر.
+                </p>
+            </div>
+
+            <div id="tab-designer" class="tab-pane">
+                <div class="designer-card text-center">
+                    <div class="mb-4">
+                        <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="designer-logo">
+                        <h3 class="designer-welcome mt-2">أهلا وسهلا ومرحبا بك في برنامج <span class="fw-bold" style="color:#8b5cf6;">(ميزان العدالة)</span></h3>
+                        <p class="text-secondary">نظام متكامل لإدارة مكاتب المحاماة المصرية</p>
+                    </div>
+
+                    <hr class="my-4 opacity-25">
+
+                    <div class="row justify-content-center g-4">
+                        <div class="col-md-6 text-start">
+                            <h5 class="fw-bold mb-3"><i class="fas fa-id-card-alt me-2 text-primary"></i> بيانات المصمم</h5>
+                            <div class="mb-2">
+                                <span class="text-muted">المصمم:</span>
+                                <span class="designer-name d-block mt-1">خالد محمد علي (أبو خلاد)</span>
+                            </div>
+                            
+                            <div class="cta-box mt-4">
+                                <p class="mb-0 fw-bold">لا تتردد في الاتصال بي لحجز نسختك الآن.</p>
+                            </div>
+                        </div>
+                        
+                        <div class="col-md-5 text-start">
+                            <h5 class="fw-bold mb-3"><i class="fas fa-headset me-2 text-primary"></i> قنوات التواصل</h5>
+                            
+                            <a href="mailto:khaledsnet2003@gmail.com" class="contact-item">
+                                <div class="contact-icon"><i class="fas fa-envelope"></i></div>
+                                <div>
+                                    <small class="text-muted d-block">البريد الإلكتروني</small>
+                                    <strong>khaledsnet2003@gmail.com</strong>
+                                </div>
+                            </a>
+
+                            <a href="https://web.facebook.com/khalednet2003/" target="_blank" class="contact-item">
+                                <div class="contact-icon"><i class="fab fa-facebook-f"></i></div>
+                                <div>
+                                    <small class="text-muted d-block">فيس بوك</small>
+                                    <strong>khalednet2003</strong>
+                                </div>
+                            </a>
+
+                            <div class="contact-item">
+                                <div class="contact-icon"><i class="fas fa-phone-alt"></i></div>
+                                <div>
+                                    <small class="text-muted d-block">للتواصل المباشر</small>
+                                    <strong dir="ltr">01111132868</strong>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="text-center mt-4 text-muted">
+        <p><i class="fas fa-balance-scale"></i> <strong>ميزان العدالة</strong> - نظام إدارة مكاتب المحاماة</p>
+        <p class="small mb-0">© 2026 جميع الحقوق محفوظة - جمهورية مصر العربية</p>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+{{ block.super }}
+<script>
+    // تبديل التبويبات
+    document.querySelectorAll('#settingsTabs .nav-link').forEach(link => {
+        link.addEventListener('click', function(e) {
+            e.preventDefault();
+            document.querySelectorAll('#settingsTabs .nav-link').forEach(l => l.classList.remove('active'));
+            document.querySelectorAll('.tab-pane').forEach(p => p.classList.remove('active'));
+            this.classList.add('active');
+            const target = document.querySelector(this.dataset.target);
+            if (target) target.classList.add('active');
+        });
+    });
+
+    // زر استعادة نسخة: يفتح اختيار الملف ثم يرسل الفورم
+    const restoreBtn = document.getElementById('restoreButton');
+    const restoreFile = document.getElementById('restoreFile');
+    const restoreForm = document.getElementById('restoreForm');
+    if (restoreBtn && restoreFile && restoreForm) {
+        restoreBtn.addEventListener('click', () => restoreFile.click());
+        restoreFile.addEventListener('change', () => {
+            if (restoreFile.files.length) restoreForm.submit();
+        });
+    }
+</script>
+{% endblock %}

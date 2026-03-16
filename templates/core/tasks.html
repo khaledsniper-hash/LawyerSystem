@@ -1,0 +1,325 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency %}
+
+{% block title %}إدارة المهام - ميزان العدالة{% endblock %}
+{% block page_heading %}إدارة المهام{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.tasks-hero {
+    background: linear-gradient(135deg, #4f46e5 0%, #6366f1 50%, #818cf8 100%);
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 30px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+.tasks-hero::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.tasks-hero h1 { font-size: 2rem; margin-bottom: 8px; }
+.tasks-hero p { opacity: 0.9; font-size: 1rem; }
+.hero-stats { display: flex; gap: 30px; margin-top: 30px; flex-wrap: wrap; }
+.hero-stat {
+    background: rgba(255,255,255,0.15);
+    backdrop-filter: blur(10px);
+    padding: 20px 30px;
+    border-radius: 16px;
+    min-width: 150px;
+}
+.hero-stat .value { font-size: 2.5rem; font-weight: 800; display: block; }
+.hero-stat .label { font-size: 0.85rem; opacity: 0.9; }
+
+.filter-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+.tasks-table {
+    background: #fff;
+    border-radius: 14px;
+    border: 1px solid #e2e8f0;
+    overflow: hidden;
+}
+.tasks-table thead {
+    background: #f8fafc;
+    border-bottom: 2px solid #e2e8f0;
+}
+.tasks-table th {
+    padding: 16px;
+    font-weight: 600;
+    color: #475569;
+    font-size: 0.9rem;
+}
+.tasks-table td {
+    padding: 16px;
+    vertical-align: middle;
+    border-bottom: 1px solid #f1f5f9;
+}
+.tasks-table tbody tr:hover {
+    background: #f8fafc;
+}
+.status-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.status-badge.new { background: #dbeafe; color: #2563eb; }
+.status-badge.in_progress { background: #fef3c7; color: #d97706; }
+.status-badge.done { background: #d1fae5; color: #059669; }
+.status-badge.cancelled { background: #fee2e2; color: #dc2626; }
+.priority-badge {
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+.priority-badge.urgent { background: #fee2e2; color: #dc2626; }
+.priority-badge.high { background: #fed7aa; color: #ea580c; }
+.priority-badge.normal { background: #dbeafe; color: #2563eb; }
+.priority-badge.low { background: #e2e8f0; color: #475569; }
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+.action-btn.view { background: #dbeafe; color: #2563eb; }
+.action-btn.view:hover { background: #2563eb; color: white; }
+.action-btn.edit { background: #fef3c7; color: #d97706; }
+.action-btn.edit:hover { background: #d97706; color: white; }
+.action-btn.delete { background: #fee2e2; color: #dc2626; }
+.action-btn.delete:hover { background: #dc2626; color: white; }
+.action-btn.complete { background: #d1fae5; color: #059669; }
+.action-btn.complete:hover { background: #059669; color: white; }
+.empty-state {
+    text-align: center;
+    padding: 60px 20px;
+    color: #94a3b8;
+}
+.empty-state i { font-size: 4rem; margin-bottom: 20px; opacity: 0.5; }
+.overdue { background: #fef2f2 !important; }
+.due-date { font-size: 0.85rem; }
+.due-date.overdue { color: #dc2626; font-weight: 600; }
+.due-date.today { color: #ea580c; font-weight: 600; }
+.due-date.upcoming { color: #059669; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <!-- Hero Section -->
+    <div class="tasks-hero">
+        <h1>📋 إدارة المهام</h1>
+        <p>متابعة وإنجاز مهام المكتب اليومية</p>
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <span class="value">{{ total_tasks }}</span>
+                <span class="label">إجمالي المهام</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ new_tasks }}</span>
+                <span class="label">جديدة</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ in_progress_tasks }}</span>
+                <span class="label">قيد التنفيذ</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value">{{ done_tasks }}</span>
+                <span class="label">مكتملة</span>
+            </div>
+            <div class="hero-stat">
+                <span class="value" style="color: #fecaca;">{{ overdue_tasks }}</span>
+                <span class="label">متأخرة</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">الحالة</label>
+                <select name="status" class="form-select">
+                    <option value="">كل الحالات</option>
+                    <option value="new" {% if request.GET.status == 'new' %}selected{% endif %}>جديدة</option>
+                    <option value="in_progress" {% if request.GET.status == 'in_progress' %}selected{% endif %}>قيد التنفيذ</option>
+                    <option value="done" {% if request.GET.status == 'done' %}selected{% endif %}>مكتملة</option>
+                    <option value="cancelled" {% if request.GET.status == 'cancelled' %}selected{% endif %}>ملغاة</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">الأولوية</label>
+                <select name="priority" class="form-select">
+                    <option value="">كل الأولويات</option>
+                    <option value="urgent" {% if request.GET.priority == 'urgent' %}selected{% endif %}>عاجلة</option>
+                    <option value="high" {% if request.GET.priority == 'high' %}selected{% endif %}>عالية</option>
+                    <option value="normal" {% if request.GET.priority == 'normal' %}selected{% endif %}>عادية</option>
+                    <option value="low" {% if request.GET.priority == 'low' %}selected{% endif %}>منخفضة</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">بحث</label>
+                <input type="text" name="search" class="form-control" placeholder="عنوان المهمة، الوصف، أو رقم القضية" value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="fas fa-search"></i> بحث
+                </button>
+                <a href="{% url 'core:tasks' %}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i>
+                </a>
+            </div>
+            <div class="col-12 d-flex justify-content-between align-items-center">
+                <a href="{% url 'core:tasks' %}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i> إعادة تعيين
+                </a>
+                <a href="{% url 'core:task_create' %}" class="btn btn-primary">
+                    <i class="fas fa-plus"></i> إضافة مهمة
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Tasks Table -->
+    <div class="tasks-table">
+        <table class="table table-hover mb-0">
+            <thead>
+                <tr>
+                    <th>المهمة</th>
+                    <th>القضية</th>
+                    <th>المكلف</th>
+                    <th>تاريخ الاستحقاق</th>
+                    <th>الأولوية</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+
+{% for task in tasks %}
+<tr class="{% if task.due_date and task.due_date < now.date and task.status != 'done' %}overdue{% endif %}">
+    <td>
+        <div>
+            <div class="fw-bold">{{ task.title }}</div>
+            {% if task.description %}
+            <small class="text-muted">{{ task.description|truncatewords:5 }}</small>
+            {% endif %}
+        </div>
+    </td>
+    <td>
+        {% if task.case %}
+        <div>{{ task.case.case_number }}</div>
+        <small class="text-muted">{{ task.case.subject|truncatewords:3 }}</small>
+        {% else %}
+        <span class="text-muted">—</span>
+        {% endif %}
+    </td>
+    <td>{{ task.assigned_to.get_full_name|default:task.assigned_to.username }}</td>
+    <td>
+        {% if task.due_date %}
+        <div class="due-date {% if task.due_date < now.date and task.status != 'done' %}overdue{% elif task.due_date == now.date %}today{% else %}upcoming{% endif %}">
+            <i class="fas fa-calendar"></i> {{ task.due_date|date:"Y-m-d" }}
+        </div>
+        {% else %}
+        <span class="text-muted">—</span>
+        {% endif %}
+    </td>
+    <td>
+        <span class="priority-badge {{ task.priority }}">
+            {% if task.priority == 'urgent' %}عاجلة
+            {% elif task.priority == 'high' %}عالية
+            {% elif task.priority == 'low' %}منخفضة
+            {% else %}عادية{% endif %}
+        </span>
+    </td>
+    <td>
+        <span class="status-badge {{ task.status }}">
+            {% if task.status == 'new' %}جديدة
+            {% elif task.status == 'in_progress' %}قيد التنفيذ
+            {% elif task.status == 'done' %}مكتملة
+            {% else %}ملغاة{% endif %}
+        </span>
+    </td>
+    <td>
+        <div class="d-flex gap-2">
+            {% if task.status != 'done' %}
+            <a href="{% url 'core:task_update' task.pk %}?status=done" class="action-btn complete" title="إكمال">
+                <i class="fas fa-check"></i>
+            </a>
+            {% endif %}
+            <a href="{% url 'core:task_detail' task.pk %}" class="action-btn view" title="عرض">
+                <i class="fas fa-eye"></i>
+            </a>
+            <a href="{% url 'core:task_update' task.pk %}" class="action-btn edit" title="تعديل">
+                <i class="fas fa-edit"></i>
+            </a>
+            <a href="{% url 'core:task_delete' task.pk %}" class="action-btn delete" title="حذف">
+                <i class="fas fa-trash"></i>
+            </a>
+        </div>
+    </td>
+</tr>
+{% empty %}
+<tr>
+    <td colspan="7">
+        <div class="empty-state">
+            <i class="fas fa-tasks"></i>
+            <h5>لا توجد مهام لعرضها</h5>
+            <p class="text-muted">ابدأ بإضافة مهمة جديدة</p>
+            <a href="{% url 'core:task_create' %}" class="btn btn-primary">
+                <i class="fas fa-plus"></i> إضافة مهمة
+            </a>
+        </div>
+    </td>
+</tr>
+{% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <!-- Pagination -->
+    {% if is_paginated %}
+    <nav aria-label="Page navigation" class="mt-4">
+        <ul class="pagination justify-content-center">
+            {% if page_obj.has_previous %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.previous_page_number }}&status={{ request.GET.status }}&priority={{ request.GET.priority }}&search={{ request.GET.search }}">السابق</a>
+            </li>
+            {% endif %}
+            
+            {% for num in page_obj.paginator.page_range %}
+            <li class="page-item {% if page_obj.number == num %}active{% endif %}">
+                <a class="page-link" href="?page={{ num }}&status={{ request.GET.status }}&priority={{ request.GET.priority }}&search={{ request.GET.search }}">{{ num }}</a>
+            </li>
+            {% endfor %}
+            
+            {% if page_obj.has_next %}
+            <li class="page-item">
+                <a class="page-link" href="?page={{ page_obj.next_page_number }}&status={{ request.GET.status }}&priority={{ request.GET.priority }}&search={{ request.GET.search }}">التالي</a>
+            </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% endif %}
+</div>
+{% endblock %}

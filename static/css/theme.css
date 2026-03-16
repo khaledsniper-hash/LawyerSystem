@@ -1,0 +1,853 @@
+/* ========================================
+   Theme Variables - Mizan Al-Adala
+   ======================================== */
+
+:root {
+    /* Light Theme (Default) */
+    --bg-body: #f1f5f9;
+    --bg-card: #ffffff;
+    --bg-sidebar: #ffffff; /* Light Sidebar - White */
+    --bg-header: #ffffff;
+    --bg-input: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --text-muted: #94a3b8;
+    --text-sidebar: #475569; /* Sidebar text for light mode */
+    --sidebar-hover: #f1f5f9;
+    --border-color: #e2e8f0;
+    --hover-bg: #f8fafc;
+    --table-stripe: #f8fafc;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.1);
+}
+
+[data-theme="dark"] {
+    /* Dark Theme */
+    --bg-body: #0f172a;
+    --bg-card: #1e293b;
+    --bg-sidebar: #0f172a; /* Dark Sidebar - Navy/Black */
+    --bg-header: #1e293b;
+    --bg-input: #334155;
+    --text-primary: #f1f5f9;
+    --text-secondary: #94a3b8;
+    --text-muted: #64748b;
+    --text-sidebar: #cbd5e1; /* Sidebar text for dark mode */
+    --sidebar-hover: rgba(255,255,255,0.06);
+    --border-color: #334155;
+    --hover-bg: #334155;
+    --table-stripe: #1e293b;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.3);
+    
+    /* Bootstrap Native Table Variables override */
+    --bs-body-bg: #0f172a;
+    --bs-body-color: #f1f5f9;
+    --bs-table-bg: #1e293b !important;
+    --bs-table-color: #f1f5f9 !important;
+    --bs-table-striped-bg: #1e293b !important;
+    --bs-table-striped-color: #f1f5f9 !important;
+    --bs-table-active-bg: #334155 !important;
+    --bs-table-active-color: #f1f5f9 !important;
+    --bs-table-hover-bg: #334155 !important;
+    --bs-table-hover-color: #f1f5f9 !important;
+    --bs-table-border-color: #334155 !important;
+}
+
+/* ========================================
+   Base Elements
+   ======================================== */
+
+body {
+    background: var(--bg-body) !important;
+    color: var(--text-primary) !important;
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+/* ========================================
+   Tables - WITH !IMPORTANT
+   ======================================== */
+
+/* General table styles - more specific to override Bootstrap */
+body .table,
+body .table-striped,
+body .table-bordered,
+body .table-hover,
+body table,
+table {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Table headers - more specific */
+body .table thead,
+body .table thead th,
+body thead th,
+body thead td,
+thead th,
+thead td {
+    background: var(--hover-bg) !important;
+    color: var(--text-secondary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Table body rows - more specific */
+body .table tbody,
+body .table tbody tr,
+body tbody tr,
+tbody tr {
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+}
+
+body .table tbody tr:hover,
+body tbody tr:hover,
+tbody tr:hover {
+    background: var(--hover-bg) !important;
+}
+
+/* Table striped rows - more specific */
+body .table-striped tbody tr:nth-of-type(odd),
+body table tbody tr:nth-of-type(odd),
+table tbody tr:nth-of-type(odd) {
+    background: var(--table-stripe) !important;
+}
+
+/* Table cells - more specific */
+body .table td,
+body .table th,
+body td,
+body th,
+td,
+th {
+    background-color: transparent !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+/* Table-bordered specific - more specific */
+body .table-bordered {
+    border-color: var(--border-color) !important;
+}
+
+body .table-bordered th,
+body .table-bordered td {
+    border-color: var(--border-color) !important;
+}
+
+/* Tables in specific pages */
+.clients-table,
+.tasks-table,
+.invoices-table,
+.appointments-table,
+.contracts-table,
+.sessions-table,
+.opponents-table,
+.finance-table {
+    background: var(--bg-card) !important;
+}
+
+.clients-table thead,
+.tasks-table thead,
+.invoices-table thead,
+.appointments-table thead,
+.contracts-table thead,
+.sessions-table thead,
+.opponents-table thead,
+.finance-table thead {
+    background: var(--hover-bg) !important;
+}
+
+.clients-table tbody tr,
+.tasks-table tbody tr,
+.invoices-table tbody tr,
+.appointments-table tbody tr,
+.contracts-table tbody tr,
+.sessions-table tbody tr,
+.opponents-table tbody tr,
+.finance-table tbody tr {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.clients-table tbody tr:hover,
+.tasks-table tbody tr:hover,
+.invoices-table tbody tr:hover,
+.appointments-table tbody tr:hover,
+.contracts-table tbody tr:hover,
+.sessions-table tbody tr:hover,
+.opponents-table tbody tr:hover,
+.finance-table tbody tr:hover {
+    background: var(--hover-bg) !important;
+}
+
+/* Additional dark theme overrides for tables and frames */
+[data-theme="dark"] .modal-body table,
+[data-theme="dark"] .panel-body table,
+[data-theme="dark"] .card .table,
+[data-theme="dark"] .frame,
+[data-theme="dark"] iframe,
+[data-theme="dark"] .table-responsive {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Modals and Dialog frames */
+[data-theme="dark"] .modal-content,
+[data-theme="dark"] .modal-header,
+[data-theme="dark"] .modal-footer,
+[data-theme="dark"] .offcanvas {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+
+/* Forms - Specifics */
+[data-theme="dark"] .form-control:focus,
+[data-theme="dark"] .form-select:focus {
+    background-color: var(--bg-input) !important;
+    color: var(--text-primary) !important;
+    border-color: #4f46e5 !important;
+}
+
+[data-theme="dark"] .form-group input[readonly],
+[data-theme="dark"] .form-control[readonly] {
+    background-color: var(--bg-body) !important;
+    color: var(--text-secondary) !important;
+}
+
+[data-theme="dark"] input[type="date"]::-webkit-calendar-picker-indicator {
+    filter: invert(1);
+}
+
+[data-theme="dark"] .progress-bar-container {
+    background: var(--bg-input) !important;
+}
+
+[data-theme="dark"] .finance-table tbody tr:hover {
+    background: var(--hover-bg) !important;
+}
+
+/* Dropdowns and Popovers */
+[data-theme="dark"] .dropdown-menu,
+[data-theme="dark"] .popover,
+[data-theme="dark"] .list-group-item {
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    border-color: var(--border-color) !important;
+}
+[data-theme="dark"] .dropdown-item {
+    color: var(--text-primary) !important;
+}
+[data-theme="dark"] .dropdown-item:hover {
+    background: var(--hover-bg) !important;
+}
+
+/* ========================================
+   Cards & Panels
+   ======================================== */
+
+.card,
+.dash-card,
+.section-card,
+.filter-card,
+.finance-card,
+.report-card,
+.settings-card {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+[data-theme="dark"] .stat-row,
+[data-theme="dark"] .info-row,
+[data-theme="dark"] .report-header,
+[data-theme="dark"] .settings-header,
+[data-theme="dark"] .section-header {
+    border-color: var(--border-color) !important;
+}
+
+[data-theme="dark"] .chart-placeholder {
+    background: var(--bg-input) !important;
+    color: var(--text-secondary) !important;
+}
+
+/* ========================================
+   Sidebar
+   ======================================== */
+
+.sidebar {
+    background: var(--bg-sidebar) !important;
+    border-left: 1px solid var(--border-color); /* Separator for light theme */
+}
+
+.sidebar-header {
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.sidebar-brand {
+    color: var(--text-primary) !important;
+    padding-right: 0 !important; /* Reset padding for new layout */
+}
+
+.brand-text {
+    line-height: 1.5; /* Increased line-height for more spacing between lines */
+    margin-right: 5px; /* Offset to push slightly from logo in RTL */
+}
+
+.brand-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    margin-bottom: 2px;
+}
+
+.brand-subtitle {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    font-weight: 500;
+}
+
+.brand-logo img {
+    border: 1px solid var(--border-color);
+}
+
+.sidebar-nav .nav-link {
+    color: var(--text-sidebar) !important;
+    margin: 0.2rem 0.75rem;
+    border-radius: 12px;
+}
+
+.sidebar-nav .nav-link:hover {
+    color: var(--text-primary) !important;
+    background: var(--sidebar-hover) !important;
+}
+
+/* Base Active Highlight (Subtle background) */
+.sidebar-nav .nav-link.active {
+    color: var(--text-primary) !important;
+    background: var(--sidebar-hover) !important;
+    font-weight: 600;
+}
+
+/* Strong Gradient Highlight (Only for direct links or submenu links) */
+.sidebar-nav > .nav-link.active:not(.dropdown-toggle),
+.sidebar-nav .submenu .nav-link.active {
+    color: #fff !important;
+    background: linear-gradient(135deg, #7c3aed, #6366f1) !important;
+    box-shadow: 0 4px 12px rgba(124, 58, 237, 0.25) !important;
+}
+
+/* Ensure icons on strong active buttons are white */
+.sidebar-nav .nav-link.active:not(.dropdown-toggle) i,
+.sidebar-nav .submenu .nav-link.active i {
+    color: #fff !important;
+}
+
+/* Sidebar Submenus */
+.sidebar-nav .nav-link.dropdown-toggle::after {
+    display: inline-block;
+    margin-right: auto;
+    content: "\f107"; /* FontAwesome angle-down */
+    font-family: "Font Awesome 6 Free";
+    font-weight: 900;
+    transition: transform 0.3s ease;
+}
+
+.sidebar-nav .nav-link.dropdown-toggle[aria-expanded="true"]::after {
+    transform: rotate(180deg);
+}
+
+.sidebar-nav .submenu {
+    list-style: none;
+    padding-right: 1.5rem;
+    padding-left: 0;
+    margin-bottom: 0.5rem;
+}
+
+.sidebar-nav .submenu .nav-link {
+    padding: 0.5rem 1rem;
+    font-size: 0.9em;
+    background: transparent !important;
+}
+
+.sidebar-nav .submenu .nav-link:hover {
+    background: var(--sidebar-hover) !important;
+}
+
+/* Dark Theme Specific Adjustment */
+[data-theme="dark"] .sidebar-nav .nav-link {
+    color: #cbd5e1 !important;
+}
+
+[data-theme="dark"] .sidebar-nav .nav-link:hover,
+[data-theme="dark"] .sidebar-nav .nav-link.active {
+    color: #fff !important;
+}
+
+/* ========================================
+   Header / Navbar
+   ======================================== */
+
+.top-navbar {
+    background: var(--bg-header) !important;
+    border-bottom: 1px solid var(--border-color) !important;
+}
+
+.top-navbar .text-muted {
+    color: var(--text-muted) !important;
+}
+
+/* ========================================
+   Notification Button - FIXED
+   ======================================== */
+
+.btn-notification {
+    position: relative !important;
+    width: 2.5rem !important;
+    height: 2.5rem !important;
+    border-radius: 10px !important;
+    border: 1px solid var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-secondary) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    text-decoration: none !important;
+    transition: color 0.2s, border-color 0.2s !important;
+    cursor: pointer !important;
+}
+
+.btn-notification:hover {
+    color: #4f46e5 !important;
+    border-color: #818cf8 !important;
+    background: var(--hover-bg) !important;
+}
+
+.btn-notification .badge {
+    position: absolute !important;
+    top: -4px !important;
+    left: -4px !important;
+    background: #4f46e5 !important;
+    color: #fff !important;
+    font-size: 0.7rem !important;
+    min-width: 1.2rem !important;
+    border-radius: 10px !important;
+    display: inline-block !important;
+}
+
+.btn-notification i {
+    font-size: 1.1rem !important;
+    display: block !important;
+}
+
+/* ========================================
+   Forms & Inputs
+   ======================================== */
+
+.form-control,
+.form-select {
+    background: var(--bg-input) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.form-control:focus,
+.form-select:focus {
+    background: var(--bg-input) !important;
+    border-color: #4f46e5 !important;
+    color: var(--text-primary) !important;
+}
+
+.form-control::placeholder {
+    color: var(--text-muted) !important;
+}
+
+/* ========================================
+   Text Colors
+   ======================================== */
+
+.text-primary { color: var(--text-primary) !important; }
+.text-secondary { color: var(--text-secondary) !important; }
+.text-muted { color: var(--text-muted) !important; }
+
+/* ========================================
+   Buttons
+   ======================================== */
+
+.btn {
+    color: var(--text-primary) !important;
+}
+
+.btn-logout {
+    color: var(--text-secondary) !important;
+    text-decoration: none !important;
+    display: inline-flex !important;
+    align-items: center !important;
+    gap: 0.4rem !important;
+    padding: 0.4rem 0.75rem !important;
+    border-radius: 10px !important;
+    transition: color 0.2s, background 0.2s !important;
+}
+
+.btn-logout:hover {
+    color: #dc2626 !important;
+    background: var(--hover-bg) !important;
+}
+
+/* ========================================
+   Theme Toggle Button
+   ======================================== */
+
+.theme-toggle {
+    width: 40px !important;
+    height: 40px !important;
+    border-radius: 50% !important;
+    border: 2px solid var(--border-color) !important;
+    background: var(--bg-card) !important;
+    color: var(--text-primary) !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    cursor: pointer !important;
+    transition: all 0.3s ease !important;
+    margin-left: 10px !important;
+}
+
+.theme-toggle:hover {
+    background: var(--hover-bg) !important;
+    transform: rotate(15deg) scale(1.1) !important;
+}
+
+[data-theme="dark"] .sun-icon { display: block !important; }
+[data-theme="dark"] .moon-icon { display: none !important; }
+[data-theme="light"] .sun-icon { display: none !important; }
+[data-theme="light"] .moon-icon { display: block !important; }
+
+/* ========================================
+   Hero Sections
+   ======================================== */
+
+.dashboard-hero,
+.clients-hero,
+.cases-hero,
+.finance-hero,
+.tasks-hero,
+.appointments-hero,
+.invoices-hero,
+.contracts-hero,
+.reports-hero,
+.sessions-hero,
+.opponents-hero {
+    color: white !important;
+}
+
+/* ========================================
+   Badges
+   ======================================== */
+
+.badge {
+    color: #fff !important;
+}
+
+/* ========================================
+   Pagination
+   ======================================== */
+
+.page-link {
+    background: var(--bg-card) !important;
+    border-color: var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+
+.page-link:hover {
+    background: var(--hover-bg) !important;
+}
+
+.page-item.active .page-link {
+    background: #4f46e5 !important;
+    border-color: #4f46e5 !important;
+    color: #fff !important;
+}
+
+/* ========================================
+   Alerts
+   ======================================== */
+
+.alert {
+    background: var(--bg-card) !important;
+    border: 1px solid var(--border-color) !important;
+    color: var(--text-primary) !important;
+}
+/* ========================================
+   Dark Theme - Status Badges Override
+   ======================================== */
+
+/* Status badges in dark mode */
+[data-theme="dark"] .status-badge.scheduled {
+    background: #1e3a5f !important;
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .status-badge.completed {
+    background: #064e3b !important;
+    color: #34d399 !important;
+}
+
+[data-theme="dark"] .status-badge.cancelled {
+    background: #7f1d1d !important;
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .status-badge.postponed {
+    background: #78350f !important;
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .status-badge.active {
+    background: #064e3b !important;
+    color: #34d399 !important;
+}
+
+[data-theme="dark"] .status-badge.expired {
+    background: #7f1d1d !important;
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .status-badge.pending {
+    background: #78350f !important;
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .overdue {
+    background-color: rgba(220, 38, 38, 0.15) !important;
+}
+
+/* ========================================
+   Dark Theme - Action Buttons Override
+   ======================================== */
+
+[data-theme="dark"] .action-btn {
+    background: #334155 !important;
+    color: #f1f5f9 !important;
+}
+
+[data-theme="dark"] .action-btn.view {
+    background: #1e3a5f !important;
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .action-btn.view:hover {
+    background: #2563eb !important;
+    color: #fff !important;
+}
+
+[data-theme="dark"] .action-btn.edit {
+    background: #78350f !important;
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .action-btn.edit:hover {
+    background: #d97706 !important;
+    color: #fff !important;
+}
+
+[data-theme="dark"] .action-btn.delete {
+    background: #7f1d1d !important;
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .action-btn.delete:hover {
+    background: #dc2626 !important;
+    color: #fff !important;
+}
+
+[data-theme="dark"] .action-btn.complete {
+    background: #064e3b !important;
+    color: #34d399 !important;
+}
+
+[data-theme="dark"] .action-btn.complete:hover {
+    background: #059669 !important;
+    color: #fff !important;
+}
+
+[data-theme="dark"] .action-btn.print {
+    background: #312e81 !important;
+    color: #a5b4fc !important;
+}
+
+[data-theme="dark"] .action-btn.print:hover {
+    background: #4f46e5 !important;
+    color: #fff !important;
+}
+
+/* ========================================
+   Dark Theme - Type Badges Override
+   ======================================== */
+
+[data-theme="dark"] .type-badge.meeting {
+    background: #1e3a5f !important;
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .type-badge.consultation {
+    background: #064e3b !important;
+    color: #34d399 !important;
+}
+
+[data-theme="dark"] .type-badge.call {
+    background: #78350f !important;
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .type-badge.court {
+    background: #5b21b6 !important;
+    color: #a78bfa !important;
+}
+
+/* ========================================
+   Dark Theme - Priority Badges Override
+   ======================================== */
+
+[data-theme="dark"] .priority-badge.urgent {
+    background: #7f1d1d !important;
+    color: #f87171 !important;
+}
+
+[data-theme="dark"] .priority-badge.high {
+    background: #78350f !important;
+    color: #fbbf24 !important;
+}
+
+[data-theme="dark"] .priority-badge.normal {
+    background: #1e3a5f !important;
+    color: #60a5fa !important;
+}
+
+[data-theme="dark"] .priority-badge.low {
+    background: #064e3b !important;
+    color: #34d399 !important;
+}
+/* ========================================
+   Dark Theme - Bootstrap Classes Override
+   ======================================== */
+
+/* Override Bootstrap background utilities */
+[data-theme="dark"] .bg-white {
+    background: #1e293b !important;
+}
+
+[data-theme="dark"] .bg-light {
+    background: #334155 !important;
+}
+
+[data-theme="dark"] .bg-body {
+    background: #0f172a !important;
+}
+
+[data-theme="dark"] .bg-surface {
+    background: #1e293b !important;
+}
+
+/* Override any inline background colors */
+[data-theme="dark"] [style*="background:#fff"],
+[data-theme="dark"] [style*="background:#ffffff"],
+[data-theme="dark"] [style*="background: rgb(255"],
+[data-theme="dark"] [style*="background:rgba(255"] {
+    background: #1e293b !important;
+}
+
+/* Cards with Bootstrap classes */
+[data-theme="dark"] .card.bg-white,
+[data-theme="dark"] .card .bg-white {
+    background: #1e293b !important;
+}
+
+/* Table containers */
+[data-theme="dark"] .table-responsive,
+[data-theme="dark"] .table-container {
+    background: #1e293b !important;
+}
+
+/* Page content areas */
+[data-theme="dark"] .page-content,
+[data-theme="dark"] .content-area,
+[data-theme="dark"] .main-content {
+    background: #0f172a !important;
+}
+/* ========================================
+   Hero Stats - Sessions Page
+   ======================================== */
+
+.hero-stat {
+    background: rgba(255, 255, 255, 0.2);
+    padding: 12px 20px;
+    border-radius: 12px;
+    text-align: center;
+    backdrop-filter: blur(10px);
+}
+
+/* Dark theme override */
+[data-theme="dark"] .hero-stat {
+    background: rgba(30, 41, 59, 0.4);
+}
+/* ========================================
+   Settings Page - Quick Action Buttons
+   ======================================== */
+
+.btn-save {
+    display: inline-block;
+    padding: 12px 24px;
+    border-radius: 10px;
+    text-decoration: none;
+    font-weight: 600;
+    color: #fff;
+    transition: all 0.3s ease;
+}
+
+.btn-admin {
+    background: #059669;
+}
+
+.btn-admin:hover {
+    background: #047857;
+}
+
+.btn-reports {
+    background: #0891b2;
+}
+
+.btn-reports:hover {
+    background: #0e7490;
+}
+
+.btn-dashboard {
+    background: #4f46e5;
+}
+
+.btn-dashboard:hover {
+    background: #4338ca;
+}
+
+/* Dark theme adjustments */
+[data-theme="dark"] .btn-admin {
+    background: #059669;
+}
+
+[data-theme="dark"] .btn-reports {
+    background: #0891b2;
+}
+
+[data-theme="dark"] .btn-dashboard {
+    background: #4f46e5;
+}
+
+/* Ensure badge/text contrast with both themes */
+.badge.bg-outline-primary {
+    color: var(--text-primary) !important;
+    border-color: var(--text-primary) !important;
+    background: transparent !important;
+}
+
+.next-session-text {
+    color: var(--text-primary) !important;
+}

@@ -1,0 +1,253 @@
+{% load static %}
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="theme-color" content="#4f46e5">
+    <title>{% block title %}ميزان العدالة{% endblock %}</title>
+
+    <!-- Bootstrap 5.3 RTL -->
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+
+    <!-- Google Font: Cairo -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Base Styles -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <!-- Font Awesome 6 -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+
+    <!-- Page Specific CSS (يُحمّل قبل theme.css) -->
+    {% block extra_css %}
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    {% endblock %}
+
+    <!-- Theme Variables (MUST be LAST to override everything) -->
+    <link rel="stylesheet" href="{% static 'css/theme.css' %}?v=1.7">
+</head>
+
+<body>
+    <div class="app-wrapper">
+        <!-- Sidebar Overlay -->
+        <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+        <!-- Fixed Sidebar -->
+        <aside class="sidebar" id="sidebar">
+            <div class="sidebar-header">
+                <a class="sidebar-brand d-flex align-items-center gap-2" href="{% url 'core:dashboard' %}">
+                    <div class="brand-logo">
+                        <img src="{% static 'images/logo.jpg' %}" alt="Logo" class="img-fluid rounded shadow-sm" style="width: 55px; height: 55px; object-fit: cover;">
+                    </div>
+                    <div class="brand-text d-flex flex-column text-end">
+                        <span class="brand-title">ميزان العدالة</span>
+                        <span class="brand-subtitle">{{ office_profile.name|default:"مكتب المحاماة" }}</span>
+                    </div>
+                </a>
+                <button type="button" class="sidebar-close" id="sidebarClose">
+                    <i class="fas fa-times"></i>
+                </button>
+            </div>
+            <nav class="sidebar-nav">
+                <!-- الرئيسية -->
+                <a class="nav-link {% if request.resolver_match.url_name == 'dashboard' %}active{% endif %}"
+                    href="{% url 'core:dashboard' %}">
+                    <i class="fas fa-th-large"></i><span>الرئيسية</span>
+                </a>
+
+                <!-- مجموعة إدارة القضايا -->
+                <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'cases,clients,opponents,sessions,contracts,documents' %}active{% endif %}"
+                    data-bs-toggle="collapse" href="#casesMenu" role="button"
+                    aria-expanded="{% if request.resolver_match.url_name in 'cases,clients,opponents,sessions,contracts,documents' %}true{% else %}false{% endif %}"
+                    aria-controls="casesMenu">
+                    <i class="fas fa-gavel"></i><span>إدارة القضايا</span>
+                </a>
+                <div class="collapse {% if request.resolver_match.url_name in 'cases,clients,opponents,sessions,contracts,documents' %}show{% endif %}"
+                    id="casesMenu">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'cases' %}active{% endif %}"
+                                href="{% url 'core:cases' %}">
+                                <i class="fas fa-folder-open"></i><span>القضايا</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'clients' %}active{% endif %}"
+                                href="{% url 'core:clients' %}">
+                                <i class="fas fa-users"></i><span>العملاء</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'opponents' %}active{% endif %}"
+                                href="{% url 'core:opponents' %}">
+                                <i class="fas fa-user-shield"></i><span>الخصوم</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'sessions' %}active{% endif %}"
+                                href="{% url 'core:sessions' %}">
+                                <i class="fas fa-calendar-alt"></i><span>الجلسات</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'contracts' %}active{% endif %}"
+                                href="{% url 'core:contracts' %}">
+                                <i class="fas fa-file-contract"></i><span>العقود والتوكيلات</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- مجموعة المالية -->
+                <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'finance,fees,expenses,invoices' %}active{% endif %}"
+                    data-bs-toggle="collapse" href="#financeMenu" role="button"
+                    aria-expanded="{% if request.resolver_match.url_name in 'finance,fees,expenses,invoices' %}true{% else %}false{% endif %}"
+                    aria-controls="financeMenu">
+                    <i class="fas fa-chart-line"></i><span>المالية</span>
+                </a>
+                <div class="collapse {% if request.resolver_match.url_name in 'finance,fees,expenses,invoices' %}show{% endif %}"
+                    id="financeMenu">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'finance' %}active{% endif %}"
+                                href="{% url 'core:finance' %}">
+                                <i class="fas fa-chart-pie"></i><span>الأتعاب</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'expenses' %}active{% endif %}"
+                                href="{% url 'core:expenses' %}">
+                                <i class="fas fa-wallet"></i><span>المصروفات</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'invoices' %}active{% endif %}"
+                                href="{% url 'core:invoices' %}">
+                                <i class="fas fa-file-invoice-dollar"></i><span>الفواتير</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- مجموعة التنبيهات والإشعارات -->
+                <a class="nav-link dropdown-toggle {% if request.resolver_match.url_name in 'tasks' %}active{% endif %}"
+                    data-bs-toggle="collapse" href="#alertsMenu" role="button"
+                    aria-expanded="{% if request.resolver_match.url_name in 'tasks' %}true{% else %}false{% endif %}"
+                    aria-controls="alertsMenu">
+                    <i class="fas fa-bell"></i><span>التنبيهات والإشعارات</span>
+                </a>
+                <div class="collapse {% if request.resolver_match.url_name in 'tasks' %}show{% endif %}"
+                    id="alertsMenu">
+                    <ul class="nav flex-column ms-3 submenu">
+                        <li>
+                            <a class="nav-link" href="{% url 'core:sessions' %}?filter=upcoming">
+                                <i class="fas fa-calendar-check"></i><span>الجلسات القادمة</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link" href="{% url 'core:invoices' %}?status=pending">
+                                <i class="fas fa-money-check-alt"></i><span>المدفوعات المتأخرة</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a class="nav-link {% if request.resolver_match.url_name == 'tasks' %}active{% endif %}"
+                                href="{% url 'core:tasks' %}">
+                                <i class="fas fa-tasks"></i><span>المهام</span>
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+
+                <!-- المواعيد -->
+                <a class="nav-link {% if request.resolver_match.url_name == 'appointments' %}active{% endif %}"
+                    href="{% url 'core:appointments' %}">
+                    <i class="fas fa-calendar"></i><span>المواعيد</span>
+                </a>
+
+                <!-- التقارير -->
+                <a class="nav-link {% if request.resolver_match.url_name == 'reports' %}active{% endif %}"
+                    href="{% url 'core:reports' %}">
+                    <i class="fas fa-chart-bar"></i><span>التقارير</span>
+                </a>
+
+                <!-- الإعدادات -->
+                <a class="nav-link {% if request.resolver_match.url_name == 'settings' %}active{% endif %}"
+                    href="{% url 'core:settings' %}">
+                    <i class="fas fa-cog"></i><span>الإعدادات</span>
+                </a>
+            </nav>
+        </aside>
+
+        <!-- Main Area -->
+        <div class="main-area">
+            <header class="top-navbar">
+                <div class="d-flex align-items-center gap-2">
+                    <button type="button" class="sidebar-toggle d-lg-none" id="sidebarToggle">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <h1 class="h5 mb-0 text-muted d-none d-md-inline">{% block page_heading %}{% endblock %}</h1>
+                </div>
+                <div class="navbar-user">
+                    {% if user.is_authenticated %}
+                    <span class="user-name">{{ user.get_full_name|default:user.username }}</span>
+
+                    <!-- زر الإشعارات -->
+                    <a href="#" class="btn-notification" title="الإشعارات">
+                        <i class="fas fa-bell"></i>
+                        {% if notification_count|default:0 > 0 %}
+                        <span class="badge">{{ notification_count }}</span>
+                        {% endif %}
+                    </a>
+
+                    <!-- Theme Toggle Button -->
+                    <button class="theme-toggle" id="themeToggle" title="تبديل الثيم">
+                        <i class="fas fa-moon moon-icon"></i>
+                        <i class="fas fa-sun sun-icon"></i>
+                    </button>
+
+                    <!-- Logout Button -->
+                    <a href="{% url 'core:logout' %}" class="btn-logout">
+                        <i class="fas fa-sign-out-alt"></i>
+                        <span>خروج</span>
+                    </a>
+                    {% else %}
+                    <a href="{% url 'core:login' %}" class="btn btn-primary btn-sm">تسجيل الدخول</a>
+                    {% endif %}
+                </div>
+            </header>
+
+            <main class="main-content">
+                {% if messages %}
+                <div class="messages mb-3">
+                    {% for message in messages %}
+                    <div class="alert alert-{{ message.tags }} alert-dismissible fade show">
+                        {{ message }}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% endif %}
+
+                {% block content %}{% endblock %}
+            </main>
+        </div>
+    </div>
+
+    <!-- Bootstrap JS -->
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
+
+    <!-- Main JS -->
+    <script src="{% static 'js/main.js' %}"></script>
+
+    <!-- Theme JS -->
+    <script src="{% static 'js/theme.js' %}"></script>
+
+    <!-- Page Specific JS -->
+    {% block extra_js %}{% endblock %}
+</body>
+
+</html>

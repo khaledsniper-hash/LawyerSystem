@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>تسجيل الدخول - ميزان العدالة</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.rtl.min.css" rel="stylesheet">
+    <style>
+        body {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .login-card {
+            background: white;
+            border-radius: 15px;
+            padding: 40px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.2);
+            width: 100%;
+            max-width: 400px;
+        }
+        .logo {
+            text-align: center;
+            margin-bottom: 30px;
+        }
+        .logo h1 {
+            color: #667eea;
+            font-size: 28px;
+        }
+    </style>
+</head>
+<body>
+    <div class="login-card">
+        <div class="logo">
+            <h1>⚖️ ميزان العدالة</h1>
+            <p class="text-muted">نظام إدارة مكاتب المحاماة</p>
+        </div>
+        
+        <form method="post">
+            {% csrf_token %}
+            
+            {% if form.errors %}
+            <div class="alert alert-danger">
+                اسم المستخدم أو كلمة المرور غير صحيحة
+            </div>
+            {% endif %}
+            
+            <div class="mb-3">
+                <label for="id_username" class="form-label">اسم المستخدم</label>
+                <input type="text" class="form-control" id="id_username" name="username" required autofocus>
+            </div>
+            
+            <div class="mb-3">
+                <label for="id_password" class="form-label">كلمة المرور</label>
+                <input type="password" class="form-control" id="id_password" name="password" required>
+            </div>
+            
+            <button type="submit" class="btn btn-primary w-100">تسجيل الدخول</button>
+        </form>
+        
+        <div class="text-center mt-3">
+            <small class="text-muted">الحساب التجريبي: admin / admin123</small>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,430 @@
+{% extends 'base.html' %}
+{% load static %}
+{% load currency %}
+
+{% block title %}المالية - ميزان العدالة{% endblock %}
+{% block page_heading %}الملخص المالي{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}
+<style>
+.finance-hero {
+    background: linear-gradient(135deg, #059669 0%, #10b981 50%, #34d399 100%);
+    border-radius: 24px;
+    padding: 40px;
+    margin-bottom: 30px;
+    color: white;
+    position: relative;
+    overflow: hidden;
+}
+.finance-hero::before {
+    content: "";
+    position: absolute;
+    top: -50%;
+    right: -20%;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 70%);
+}
+.finance-hero h1 { font-size: 2rem; margin-bottom: 8px; }
+.finance-hero p { opacity: 0.9; font-size: 1rem; }
+
+.finance-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 20px;
+    margin-bottom: 30px;
+}
+.finance-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+}
+.finance-card-icon {
+    width: 52px;
+    height: 52px;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+    margin-bottom: 16px;
+}
+.finance-card-icon.income { background: #d1fae5; color: #059669; }
+.finance-card-icon.expense { background: #fee2e2; color: #dc2626; }
+.finance-card-icon.profit { background: #dbeafe; color: #2563eb; }
+.finance-card-icon.invoice { background: #fef3c7; color: #d97706; }
+.finance-card-value { font-size: 1.8rem; font-weight: 700; color: #1e293b; }
+.finance-card-label { font-size: 0.9rem; color: #64748b; margin-top: 4px; }
+.finance-card-trend { font-size: 0.8rem; margin-top: 8px; }
+.finance-card-trend.up { color: #059669; }
+.finance-card-trend.down { color: #dc2626; }
+
+.section-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+    gap: 24px;
+    margin-bottom: 30px;
+}
+.section-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+}
+.section-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+}
+.section-title {
+    font-size: 1.1rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.section-title i { color: #4f46e5; }
+
+.finance-table {
+    width: 100%;
+    border-collapse: collapse;
+}
+.finance-table th {
+    padding: 12px;
+    text-align: right;
+    font-weight: 600;
+    color: #64748b;
+    font-size: 0.85rem;
+    border-bottom: 2px solid #e2e8f0;
+}
+.finance-table td {
+    padding: 14px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    font-size: 0.9rem;
+}
+.finance-table tbody tr:hover {
+    background: #f8fafc;
+}
+.amount-positive { color: #059669; font-weight: 600; }
+.amount-negative { color: #dc2626; font-weight: 600; }
+
+.chart-placeholder {
+    background: #f8fafc;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    color: #94a3b8;
+}
+
+.filter-card {
+    background: #fff;
+    border-radius: 14px;
+    padding: 24px;
+    border: 1px solid #e2e8f0;
+    margin-bottom: 24px;
+}
+
+.action-btn {
+    width: 36px;
+    height: 36px;
+    border-radius: 8px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.2s;
+    border: none;
+    cursor: pointer;
+    text-decoration: none;
+}
+.action-btn.view { background: #dbeafe; color: #2563eb; }
+.action-btn.view:hover { background: #2563eb; color: white; }
+.action-btn.add { background: #059669; color: white; }
+.action-btn.add:hover { background: #047857; color: white; }
+</style>
+{% endblock %}
+
+{% block content %}
+<div class="page-content">
+    <!-- Hero Section -->
+    <div class="finance-hero">
+        <h1>💰 الملخص المالي</h1>
+        <p>نظرة شاملة على الوضع المالي للمكتب</p>
+    </div>
+
+    <!-- Finance Cards -->
+    <div class="finance-grid">
+        <!-- إجمالي الأتعاب -->
+        <div class="finance-card">
+            <div class="finance-card-icon income">
+                <i class="fas fa-coins"></i>
+            </div>
+            <div class="finance-card-value">{{ total_fees|currency }}</div>
+            <div class="finance-card-label">إجمالي الأتعاب المتفق عليها</div>
+        </div>
+
+        <!-- إجمالي المحصل -->
+        <div class="finance-card">
+            <div class="finance-card-icon income">
+                <i class="fas fa-hand-holding-usd"></i>
+            </div>
+            <div class="finance-card-value">{{ total_collected|currency }}</div>
+            <div class="finance-card-label">إجمالي المبالغ المحصلة</div>
+        </div>
+
+        <!-- إجمالي المصروفات -->
+        <div class="finance-card">
+            <div class="finance-card-icon expense">
+                <i class="fas fa-wallet"></i>
+            </div>
+            <div class="finance-card-value">{{ total_expenses|currency }}</div>
+            <div class="finance-card-label">إجمالي المصروفات</div>
+        </div>
+
+        <!-- صافي الربح -->
+        <div class="finance-card">
+            <div class="finance-card-icon profit">
+                <i class="fas fa-chart-line"></i>
+            </div>
+            <div class="finance-card-value {% if net_profit >= 0 %}amount-positive{% else %}amount-negative{% endif %}">
+                {{ net_profit|currency }}
+            </div>
+            <div class="finance-card-label">صافي الربح</div>
+            <div class="finance-card-trend {% if net_profit >= 0 %}up{% else %}down{% endif %}">
+                {% if net_profit >= 0 %}
+                <i class="fas fa-arrow-up"></i> ربح
+                {% else %}
+                <i class="fas fa-arrow-down"></i> خسارة
+                {% endif %}
+            </div>
+        </div>
+
+        <!-- الفواتير -->
+        <div class="finance-card">
+            <div class="finance-card-icon invoice">
+                <i class="fas fa-file-invoice"></i>
+            </div>
+            <div class="finance-card-value">{{ total_invoices }}</div>
+            <div class="finance-card-label">إجمالي الفواتير</div>
+            <div class="finance-card-trend">
+                <span class="text-success">{{ paid_invoices }} مدفوعة</span> | 
+                <span class="text-warning">{{ pending_invoices }} قيد الانتظار</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Filters -->
+    <div class="filter-card">
+        <form method="get" class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label">حالة الأتعاب</label>
+                <select name="status" class="form-select">
+                    <option value="">كل الحالات</option>
+                    <option value="paid" {% if request.GET.status == 'paid' %}selected{% endif %}>مدفوع</option>
+                    <option value="partial" {% if request.GET.status == 'partial' %}selected{% endif %}>مدفوع جزئياً</option>
+                    <option value="pending" {% if request.GET.status == 'pending' %}selected{% endif %}>غير مدفوع</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <label class="form-label">نوع الأتعاب</label>
+                <select name="fee_type" class="form-select">
+                    <option value="">كل الأنواع</option>
+                    <option value="fixed" {% if request.GET.fee_type == 'fixed' %}selected{% endif %}>مبلغ ثابت</option>
+                    <option value="hourly" {% if request.GET.fee_type == 'hourly' %}selected{% endif %}>ساعي</option>
+                    <option value="percentage" {% if request.GET.fee_type == 'percentage' %}selected{% endif %}>نسبة مئوية</option>
+                </select>
+            </div>
+            <div class="col-md-4">
+                <label class="form-label">بحث</label>
+                <input type="text" name="search" class="form-control" placeholder="رقم القضية، الموضوع، أو اسم العميل" value="{{ request.GET.search }}">
+            </div>
+            <div class="col-md-2 d-flex align-items-end gap-2">
+                <button type="submit" class="btn btn-primary flex-grow-1">
+                    <i class="fas fa-search"></i> بحث
+                </button>
+                <a href="{% url 'core:finance' %}" class="btn btn-secondary">
+                    <i class="fas fa-redo"></i>
+                </a>
+            </div>
+        </form>
+    </div>
+
+    <!-- Section Grid -->
+    <div class="section-grid">
+        <!-- Recent Fees -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-coins"></i> آخر الأتعاب
+                </h3>
+                <a href="{% url 'core:fees' %}" style="color:#3b82f6;font-size:0.85rem">عرض الكل</a>
+            </div>
+            {% if recent_fees %}
+            <table class="finance-table">
+                <thead>
+                    <tr>
+                        <th>القضية</th>
+                        <th>النوع</th>
+                        <th>المبلغ</th>
+                        <th>الحالة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for fee in recent_fees|slice:":5" %}
+                    <tr>
+                        <td>
+                            <div>{{ fee.case.case_number }}</div>
+                            <small class="text-muted">{{ fee.case.client.full_name|truncatewords:3 }}</small>
+                        </td>
+                        <td>
+                            {% if fee.fee_type == 'fixed' %}
+                            <span class="badge bg-primary">ثابت</span>
+                            {% elif fee.fee_type == 'hourly' %}
+                            <span class="badge bg-info">ساعي</span>
+                            {% else %}
+                            <span class="badge bg-secondary">نسبة</span>
+                            {% endif %}
+                        </td>
+                        <td class="amount-positive">{{ fee.agreed_amount|currency_short }}</td>
+                        <td>
+                            {% if fee.status == 'paid' %}
+                            <span class="badge bg-success">مدفوع</span>
+                            {% elif fee.status == 'partial' %}
+                            <span class="badge bg-warning">جزئي</span>
+                            {% else %}
+                            <span class="badge bg-danger">غير مدفوع</span>
+                            {% endif %}
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="chart-placeholder">
+                <i class="fas fa-coins fa-3x mb-3"></i>
+                <p>لا توجد أتعاب مسجلة</p>
+            </div>
+            {% endif %}
+            <div class="mt-3 text-center">
+                <a href="{% url 'core:fee_create' %}" class="action-btn add">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+
+        <!-- Expenses by Category -->
+        <div class="section-card">
+            <div class="section-header">
+                <h3 class="section-title">
+                    <i class="fas fa-wallet"></i> المصروفات حسب الفئة
+                </h3>
+                <a href="{% url 'core:expenses' %}" style="color:#3b82f6;font-size:0.85rem">عرض الكل</a>
+            </div>
+            {% if expenses_by_category %}
+            <table class="finance-table">
+                <thead>
+                    <tr>
+                        <th>الفئة</th>
+                        <th>المبلغ</th>
+                        <th>النسبة</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for expense in expenses_by_category %}
+                    <tr>
+                        <td>
+                            {% if expense.category == 'court_fees' %}رسوم محكمة
+                            {% elif expense.category == 'transport' %}مواصلات
+                            {% elif expense.category == 'documents' %}مستندات
+                            {% elif expense.category == 'utilities' %}مرافق
+                            {% else %}أخرى{% endif %}
+                        </td>
+                        <td class="amount-negative">{{ expense.total|currency_short }}</td>
+                        <td>
+                            <div class="progress" style="height: 6px;">
+                                <div class="progress-bar bg-danger" role="progressbar" 
+                                     style="width: {{ expense.total|floatformat:0|add:1 }}%"></div>
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+            {% else %}
+            <div class="chart-placeholder">
+                <i class="fas fa-wallet fa-3x mb-3"></i>
+                <p>لا توجد مصروفات مسجلة</p>
+            </div>
+            {% endif %}
+            <div class="mt-3 text-center">
+                <a href="{% url 'core:expense_create' %}" class="action-btn add">
+                    <i class="fas fa-plus"></i>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Invoices Section -->
+    <div class="section-card">
+        <div class="section-header">
+            <h3 class="section-title">
+                <i class="fas fa-file-invoice"></i> آخر الفواتير
+            </h3>
+            <a href="{% url 'core:invoices' %}" style="color:#3b82f6;font-size:0.85rem">عرض الكل</a>
+        </div>
+        {% if recent_invoices %}
+        <table class="finance-table">
+            <thead>
+                <tr>
+                    <th>رقم الفاتورة</th>
+                    <th>العميل</th>
+                    <th>التاريخ</th>
+                    <th>المبلغ</th>
+                    <th>الحالة</th>
+                    <th>إجراءات</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for invoice in recent_invoices|slice:":5" %}
+                <tr>
+                    <td><code>{{ invoice.invoice_number }}</code></td>
+                    <td>{{ invoice.client.full_name }}</td>
+                    <td>{{ invoice.date|date:"Y-m-d" }}</td>
+                    <td class="amount-positive">{{ invoice.total|currency_short }}</td>
+                    <td>
+                        {% if invoice.status == 'paid' %}
+                        <span class="badge bg-success">مدفوعة</span>
+                        {% elif invoice.status == 'pending' %}
+                        <span class="badge bg-warning">قيد الانتظار</span>
+                        {% else %}
+                        <span class="badge bg-danger">ملغاة</span>
+                        {% endif %}
+                    </td>
+                    <td>
+                        <a href="#" class="action-btn view">
+                            <i class="fas fa-eye"></i>
+                        </a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="chart-placeholder">
+            <i class="fas fa-file-invoice fa-3x mb-3"></i>
+            <p>لا توجد فواتير مسجلة</p>
+        </div>
+        {% endif %}
+        <div class="mt-3 text-center">
+            <a href="{% url 'core:invoice_create' %}" class="action-btn add">
+                <i class="fas fa-plus"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
