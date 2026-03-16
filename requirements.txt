@@ -1,0 +1,5 @@
+django~=6.0.3
+pillow
+celery
+django-celery-beat
+redis
